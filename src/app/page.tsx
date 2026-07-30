@@ -736,4 +736,3 @@ function CTASection({ t }: { t: (path: string) => string }) {
   );
 }
 
-export { HeroSection, StatsSection, CategoriesSection, FeaturedPharmacies, PopularMedicines, WhyChooseUs, TestimonialsSection, FAQSection, CTASection };
