@@ -67,7 +67,6 @@ const categoryIconMap: Record<string, React.ElementType> = {
   Wind,
   Stethoscope,
   Apple,
-  Wind,
 };
 
 const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "destructive" | "outline"> = {

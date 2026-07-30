@@ -157,6 +157,7 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, color }: {
   trendValue?: string;
   color: string;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants}>
       <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">

@@ -6,7 +6,7 @@ export const languages: { code: Language; name: string; nativeName: string }[] =
   { code: "en", name: "English", nativeName: "English" },
 ];
 
-type TranslationValue = string | { [key: string]: TranslationValue };
+type TranslationValue = string | { [key: string]: TranslationValue } | any[];
 
 export const translations: Record<Language, Record<string, TranslationValue>> = {
   uz: {

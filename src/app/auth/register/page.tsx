@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Pill, Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Pill, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,21 +116,21 @@ export default function RegisterPage() {
             <Input
               label={t("auth.register.fullName")}
               placeholder="John Doe"
-              leftIcon={<User className="w-4 h-4" />}
+              icon={<User className="w-4 h-4" />}
               required
             />
             <Input
               label={t("auth.register.email")}
               type="email"
               placeholder="john@example.com"
-              leftIcon={<Mail className="w-4 h-4" />}
+              icon={<Mail className="w-4 h-4" />}
               required
             />
             <Input
               label={t("auth.register.phone")}
               type="tel"
               placeholder="+1 (555) 000-0000"
-              leftIcon={<Phone className="w-4 h-4" />}
+              icon={<Phone className="w-4 h-4" />}
               required
             />
             <div>
@@ -138,12 +138,7 @@ export default function RegisterPage() {
                 label={t("auth.register.password")}
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password"
-                leftIcon={<Lock className="w-4 h-4" />}
-                rightIcon={
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                }
+                icon={<Lock className="w-4 h-4" />}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -166,12 +161,7 @@ export default function RegisterPage() {
               label={t("auth.register.confirmPassword")}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Repeat your password"
-              leftIcon={<Lock className="w-4 h-4" />}
-              rightIcon={
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              }
+              icon={<Lock className="w-4 h-4" />}
               required
             />
 
