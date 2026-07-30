@@ -61,7 +61,7 @@ function generateId(): string {
 }
 
 export default function ScannerPage() {
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
@@ -72,10 +72,6 @@ export default function ScannerPage() {
   const [isBarcodeScanning, setIsBarcodeScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scanLineRef = useRef<HTMLDivElement>(null);
-
-  const tScanner = (uz: string, ru: string, en: string) => {
-    return language === "uz" ? uz : language === "ru" ? ru : en;
-  };
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -143,7 +139,7 @@ export default function ScannerPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6"
             >
               <Scan className="w-4 h-4" />
-              {tScanner("AI bilan skanerlash", "AI сканирование", "AI-Powered Scanning")}
+              {t("scanner.badge")}
             </motion.div>
 
             <motion.div
@@ -157,7 +153,7 @@ export default function ScannerPage() {
               </div>
               <div>
                 <h1 className="heading-xl mb-1 leading-tight">
-                  {tScanner("Dori skaneri", "Сканер лекарств", "Medicine Scanner")}
+                  {t("scanner.title")}
                 </h1>
               </div>
             </motion.div>
@@ -168,11 +164,7 @@ export default function ScannerPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-base md:text-lg text-muted-foreground mb-8 max-w-2xl leading-relaxed"
             >
-              {tScanner(
-                "Dori nomini, dozajini va narxini bilish uchun qadoqni skanerlang yoki shtrix-kodni kiriting.",
-                "Отсканируйте упаковку или введите штрих-код, чтобы узнать название, дозировку и цену лекарства.",
-                "Scan the package or enter the barcode to identify the medicine name, dosage, and price."
-              )}
+              {t("scanner.description")}
             </motion.p>
 
             <motion.div
@@ -200,14 +192,10 @@ export default function ScannerPage() {
                         <Camera className="w-10 h-10 text-primary/60" />
                       </div>
                       <p className="text-sm text-muted-foreground font-medium">
-                        {tScanner("Kamerani yo'naltiring", "Наведите камеру", "Point your camera")}
+                        {t("scanner.pointCamera")}
                       </p>
                       <p className="text-xs text-muted-foreground/60 mt-1">
-                        {tScanner(
-                          "yoki suratni yuklash uchun bosing",
-                          "или нажмите для загрузки изображения",
-                          "or click to upload an image"
-                        )}
+                        {t("scanner.clickToUpload")}
                       </p>
                     </div>
                   )}
@@ -254,7 +242,7 @@ export default function ScannerPage() {
                     disabled={isScanning}
                   >
                     <Camera className="w-5 h-5 mr-2" />
-                    {tScanner("Kamerani ochish", "Открыть камеру", "Open Camera")}
+                    {t("dashboard.patient.upload")}
                   </Button>
                   <Button
                     variant="outline"
@@ -277,7 +265,7 @@ export default function ScannerPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                           <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                          {tScanner("Skanerlanmoqda...", "Сканируется...", "Scanning...")}
+                          {t("common.loading")}
                         </div>
                         <span className="text-xs text-muted-foreground tabular-nums">
                           {Math.min(100, Math.round(scanProgress))}%
@@ -303,7 +291,7 @@ export default function ScannerPage() {
                           <CheckCircle2 className="w-4 h-4 text-white" />
                         </div>
                         <h3 className="font-semibold">
-                          {tScanner("Natija", "Результат", "Result")}
+                          {t("scanner.result")}
                         </h3>
                       </div>
 
@@ -327,21 +315,21 @@ export default function ScannerPage() {
                           <div className="grid grid-cols-2 gap-3 mb-4">
                             <div className="p-3 rounded-xl bg-muted/30 border border-border/50">
                               <p className="text-xs text-muted-foreground font-medium mb-1">
-                                {tScanner("Ishlab chiqaruvchi", "Производитель", "Manufacturer")}
+                                {t("medicines.manufacturer")}
                               </p>
                               <p className="text-sm font-semibold">{result.manufacturer}</p>
                             </div>
                             <div className="p-3 rounded-xl bg-muted/30 border border-border/50">
                               <p className="text-xs text-muted-foreground font-medium mb-1">
-                                {tScanner("Shakl", "Форма", "Form")}
+                                {t("medicines.form")}
                               </p>
-                              <p className="text-sm font-semibold capitalize">{result.form}</p>
+                              <p className="text-sm font-semibold capitalize">{t(`medicines.formLabels.${result.form}`)}</p>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-primary/5 border border-primary/10 mb-4">
                             <span className="text-sm font-medium text-foreground">
-                              {tScanner("Taxminiy narx", "Примерная цена", "Estimated Price")}
+                              {t("scanner.estimatedPrice")}
                             </span>
                             <span className="text-xl font-bold text-primary">
                               {formatPrice(result.price)}
@@ -351,7 +339,7 @@ export default function ScannerPage() {
                           <Button variant="primary" size="lg" className="w-full h-12 text-base font-semibold" asChild>
                             <a href={`/medicines?search=${encodeURIComponent(result.name)}`}>
                               <Search className="w-5 h-5 mr-2" />
-                              {tScanner("Batafsil ko'rish", "Подробнее", "View Details")}
+                              {t("scanner.viewDetails")}
                               <ArrowRight className="w-4 h-4 ml-2" />
                             </a>
                           </Button>
@@ -367,14 +355,14 @@ export default function ScannerPage() {
                   <div className="flex items-center gap-2">
                     <Barcode className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium text-foreground">
-                      {tScanner("Shtrix-kodni kiriting", "Введите штрих-код", "Enter Barcode")}
+                      {t("scanner.enterBarcode")}
                     </span>
                   </div>
                   <div className="flex gap-2">
                     <Input
                       value={barcodeInput}
                       onChange={(e) => setBarcodeInput(e.target.value)}
-                      placeholder="e.g. 4780102010316"
+                      placeholder={t("scanner.barcodePlaceholder")}
                       icon={<Barcode className="w-4 h-4" />}
                       onKeyDown={(e) => e.key === "Enter" && handleBarcodeSearch()}
                     />
@@ -413,7 +401,7 @@ export default function ScannerPage() {
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-primary" />
                       <h3 className="font-semibold">
-                        {tScanner("Skanerlar tarixi", "История сканирований", "Scan History")}
+                        {t("scanner.scanHistory")}
                       </h3>
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => setShowHistory(false)}>
@@ -437,7 +425,7 @@ export default function ScannerPage() {
                         </div>
                         <Badge variant="outline" className="shrink-0 text-[10px]">
                           <Scan className="w-3 h-3 mr-1" />
-                          {tScanner("Skanerlangan", "Отсканировано", "Scanned")}
+                          {t("scanner.scanned")}
                         </Badge>
                       </div>
                     ))}
@@ -464,14 +452,10 @@ export default function ScannerPage() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-sm mb-1">
-                    {tScanner("Qanday ishlaydi", "Как это работает", "How it works")}
+                    {t("scanner.howItWorks")}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {tScanner(
-                      "Kamerani dori qadoqidagi shtrix-kodga yo'naltiring yoki suratga oling. Bizning AI yordamimizda dori nomi, dozaji va narxini aniqlaymiz. Shtrix-kodni qo'lda ham kiritishingiz mumkin.",
-                      "Наведите камеру на штрих-код на упаковке лекарства или сфотографируйте его. Наш ИИ определит название, дозировку и цену. Вы также можете ввести штрих-код вручную.",
-                      "Point your camera at the barcode on the medicine package or take a photo. Our AI will identify the name, dosage, and price. You can also enter the barcode manually."
-                    )}
+                    {t("scanner.howItWorksDesc")}
                   </p>
                 </div>
               </div>

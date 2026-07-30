@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Pill, Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft } from "lucide-react";
@@ -10,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import toast from "react-hot-toast";
 
 export default function RegisterPage() {
+  const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,11 +25,11 @@ export default function RegisterPage() {
     const hasNumber = /\d/.test(pw);
     const hasSpecial = /[^a-zA-Z0-9]/.test(pw);
     const score = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
-    if (pw.length < 6) return { label: "Weak", color: "bg-red-500", width: "w-1/4" };
-    if (score < 2) return { label: "Weak", color: "bg-red-500", width: "w-1/4" };
-    if (score < 3) return { label: "Medium", color: "bg-yellow-500", width: "w-2/4" };
-    if (score < 4) return { label: "Strong", color: "bg-green-500", width: "w-3/4" };
-    return { label: "Very Strong", color: "bg-emerald-500", width: "w-full" };
+    if (pw.length < 6) return { label: t("auth.register.weak"), color: "bg-red-500", width: "w-1/4" };
+    if (score < 2) return { label: t("auth.register.weak"), color: "bg-red-500", width: "w-1/4" };
+    if (score < 3) return { label: t("auth.register.medium"), color: "bg-yellow-500", width: "w-2/4" };
+    if (score < 4) return { label: t("auth.register.strong"), color: "bg-green-500", width: "w-3/4" };
+    return { label: t("auth.register.veryStrong"), color: "bg-emerald-500", width: "w-full" };
   };
 
   const strength = getPasswordStrength(password);
@@ -71,7 +73,7 @@ export default function RegisterPage() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              {t("nav.back")}
             </Button>
           </Link>
         </div>
@@ -90,8 +92,8 @@ export default function RegisterPage() {
                 <span className="text-gradient">Pharma</span>Hub
               </span>
             </Link>
-            <h1 className="text-2xl font-bold mb-2">Create Account</h1>
-            <p className="text-muted-foreground">Join thousands of patients who trust us</p>
+            <h1 className="text-2xl font-bold mb-2">{t("auth.register.title")}</h1>
+            <p className="text-muted-foreground">{t("auth.register.subtitle")}</p>
           </div>
 
           <div className="flex gap-2 mb-6">
@@ -105,27 +107,27 @@ export default function RegisterPage() {
                     : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
               >
-                {r.charAt(0).toUpperCase() + r.slice(1)}
+                {r === "patient" ? t("auth.register.patient") : r === "doctor" ? t("auth.register.doctor") : t("auth.register.pharmacy")}
               </button>
             ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Full Name"
+              label={t("auth.register.fullName")}
               placeholder="John Doe"
               leftIcon={<User className="w-4 h-4" />}
               required
             />
             <Input
-              label="Email"
+              label={t("auth.register.email")}
               type="email"
               placeholder="john@example.com"
               leftIcon={<Mail className="w-4 h-4" />}
               required
             />
             <Input
-              label="Phone"
+              label={t("auth.register.phone")}
               type="tel"
               placeholder="+1 (555) 000-0000"
               leftIcon={<Phone className="w-4 h-4" />}
@@ -133,7 +135,7 @@ export default function RegisterPage() {
             />
             <div>
               <Input
-                label="Password"
+                label={t("auth.register.password")}
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password"
                 leftIcon={<Lock className="w-4 h-4" />}
@@ -161,7 +163,7 @@ export default function RegisterPage() {
               )}
             </div>
             <Input
-              label="Confirm Password"
+              label={t("auth.register.confirmPassword")}
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Repeat your password"
               leftIcon={<Lock className="w-4 h-4" />}
@@ -176,13 +178,12 @@ export default function RegisterPage() {
             <div className="flex items-center gap-2">
               <Checkbox id="terms" required />
               <label htmlFor="terms" className="text-sm text-muted-foreground">
-                I agree to the{" "}
-                <Link href="#" className="text-primary hover:underline">Terms & Conditions</Link>
+                {t("auth.register.agree")}
               </label>
             </div>
 
             <Button variant="primary" size="lg" className="w-full" loading={isLoading} type="submit">
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading ? t("common.loading") : t("auth.register.createAccount")}
             </Button>
           </form>
 
@@ -191,7 +192,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">{t("auth.login.orContinueWith")}</span>
             </div>
           </div>
 
@@ -207,9 +208,9 @@ export default function RegisterPage() {
           </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Already have an account?{" "}
+            {t("auth.register.hasAccount")}{" "}
             <Link href="/auth/login" className="text-primary font-medium hover:underline">
-              Sign in
+              {t("auth.register.signIn")}
             </Link>
           </p>
         </motion.div>

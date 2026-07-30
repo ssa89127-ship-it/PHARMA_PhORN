@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -76,16 +77,27 @@ import type { Order, Medicine } from "@/types";
 
 type PharmacyTab = "overview" | "inventory" | "orders" | "pricing" | "employees" | "delivery" | "reports" | "sales-analytics";
 
-const sidebarItems: { id: PharmacyTab; label: string; icon: React.ElementType }[] = [
-  { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "inventory", label: "Inventory", icon: Pill },
-  { id: "orders", label: "Orders", icon: ShoppingBag },
-  { id: "pricing", label: "Pricing", icon: DollarSign },
-  { id: "employees", label: "Employees", icon: Users },
-  { id: "delivery", label: "Delivery", icon: Truck },
-  { id: "reports", label: "Reports", icon: FileText },
-  { id: "sales-analytics", label: "Sales Analytics", icon: BarChart3 },
+const sidebarItems: { id: PharmacyTab; icon: React.ElementType }[] = [
+  { id: "overview", icon: LayoutDashboard },
+  { id: "inventory", icon: Pill },
+  { id: "orders", icon: ShoppingBag },
+  { id: "pricing", icon: DollarSign },
+  { id: "employees", icon: Users },
+  { id: "delivery", icon: Truck },
+  { id: "reports", icon: FileText },
+  { id: "sales-analytics", icon: BarChart3 },
 ];
+
+const tabLabelKeys: Record<PharmacyTab, string> = {
+  overview: "dashboard.pharmacy.overview",
+  inventory: "dashboard.pharmacy.inventory",
+  orders: "dashboard.pharmacy.orders",
+  pricing: "dashboard.pharmacy.pricing",
+  employees: "dashboard.pharmacy.employees",
+  delivery: "dashboard.pharmacy.delivery",
+  reports: "dashboard.pharmacy.reports",
+  "sales-analytics": "dashboard.pharmacy.salesAnalytics",
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -199,6 +211,7 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, color, subtitle
 }
 
 function OverviewTab() {
+  const { t } = useLanguage();
   const pharmacyOrders = orders.filter(o => o.pharmacyId === pharmacy.id);
   const todayOrders = pharmacyOrders.length;
   const pendingOrders = pharmacyOrders.filter(o => o.status === "pending" || o.status === "confirmed" || o.status === "preparing").length;
@@ -218,12 +231,12 @@ function OverviewTab() {
     <div className="space-y-6">
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pharmacy Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back. Here&apos;s your pharmacy overview.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.pharmacy.overview")}</h1>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.overview")}</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>Last updated: {formatDate(new Date().toISOString())}</span>
+          <span>{t("common.loading")}: {formatDate(new Date().toISOString())}</span>
         </div>
       </motion.div>
 
@@ -240,12 +253,12 @@ function OverviewTab() {
                   {pharmacy.isOpen ? (
                     <Badge variant="success" className="gap-1">
                       <CheckCircle2 className="h-3 w-3" />
-                      Open
+                      {t("pharmacies.open")}
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="gap-1">
                       <XCircle className="h-3 w-3" />
-                      Closed
+                      {t("pharmacies.closed")}
                     </Badge>
                   )}
                 </div>
@@ -275,10 +288,10 @@ function OverviewTab() {
       </motion.div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Today's Orders" value={todayOrders.toString()} icon={ShoppingCart} trend="up" trendValue="+12%" subtitle="vs yesterday" color="bg-blue-500" />
-        <StatCard title="Total Revenue" value={formatPrice(dashboardStats.totalRevenue)} icon={CircleDollarSign} trend="up" trendValue="+8.3%" subtitle="this month" color="bg-emerald-500" />
-        <StatCard title="Pending Orders" value={pendingOrders.toString()} icon={Package} trend={pendingOrders > 5 ? "up" : "down"} trendValue={pendingOrders > 5 ? "+2" : "-1"} subtitle="needs attention" color="bg-amber-500" />
-        <StatCard title="Low Stock Items" value={lowStockItems.toString()} icon={AlertCircle} trend="up" trendValue="+3" subtitle="items below threshold" color="bg-rose-500" />
+        <StatCard title={t("dashboard.pharmacy.todayOrders")} value={todayOrders.toString()} icon={ShoppingCart} trend="up" trendValue="+12%" subtitle={t("dashboard.pharmacy.overview")} color="bg-blue-500" />
+        <StatCard title={t("dashboard.pharmacy.totalRevenue")} value={formatPrice(dashboardStats.totalRevenue)} icon={CircleDollarSign} trend="up" trendValue="+8.3%" subtitle={t("dashboard.pharmacy.reports")} color="bg-emerald-500" />
+        <StatCard title={t("dashboard.pharmacy.pendingOrders")} value={pendingOrders.toString()} icon={Package} trend={pendingOrders > 5 ? "up" : "down"} trendValue={pendingOrders > 5 ? "+2" : "-1"} subtitle={t("dashboard.pharmacy.overview")} color="bg-amber-500" />
+        <StatCard title={t("dashboard.pharmacy.lowStock")} value={lowStockItems.toString()} icon={AlertCircle} trend="up" trendValue="+3" subtitle={t("dashboard.pharmacy.inventory")} color="bg-rose-500" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -286,8 +299,8 @@ function OverviewTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Recent Orders</CardTitle>
-                <CardDescription>Latest orders placed</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.patient.recentOrders")}</CardTitle>
+                <CardDescription>{t("dashboard.pharmacy.orders")}</CardDescription>
               </div>
               <ShoppingBag className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
@@ -309,7 +322,7 @@ function OverviewTab() {
                 </div>
               ))}
               {orders.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No orders yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t("common.noResults")}</p>
               )}
             </CardContent>
           </Card>
@@ -319,8 +332,8 @@ function OverviewTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Sales Overview</CardTitle>
-                <CardDescription>This week&apos;s sales trend</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.pharmacy.salesAnalytics")}</CardTitle>
+                <CardDescription>{t("dashboard.pharmacy.salesAnalytics")}</CardDescription>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
                 <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -347,6 +360,7 @@ function OverviewTab() {
 }
 
 function InventoryTab() {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
@@ -358,26 +372,26 @@ function InventoryTab() {
   );
 
   const getStockStatus = (stock: number) => {
-    if (stock > 100) return { label: "In Stock", color: "text-green-600", dot: "bg-green-500" };
-    if (stock > 50) return { label: "Low Stock", color: "text-yellow-600", dot: "bg-yellow-500" };
-    return { label: "Out of Stock", color: "text-red-600", dot: "bg-red-500" };
+    if (stock > 100) return { label: t("medicines.inStock"), color: "text-green-600", dot: "bg-green-500" };
+    if (stock > 50) return { label: t("dashboard.pharmacy.lowStock"), color: "text-yellow-600", dot: "bg-yellow-500" };
+    return { label: t("medicines.outOfStock"), color: "text-red-600", dot: "bg-red-500" };
   };
 
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Inventory</h2>
-          <p className="text-muted-foreground">Manage your medicine stock</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.inventory")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.inventory")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-1.5 shrink-0">
             <RefreshCw className="h-4 w-4" />
-            Refresh
+            {t("common.loading")}
           </Button>
           <Button className="gap-1.5 shrink-0">
             <Plus className="h-4 w-4" />
-            Add Medicine
+            {t("dashboard.admin.add")} {t("dashboard.admin.medicines")}
           </Button>
         </div>
       </motion.div>
@@ -386,7 +400,7 @@ function InventoryTab() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name or category..."
+            placeholder={t("common.search")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -400,12 +414,12 @@ function InventoryTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Medicine</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Category</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Stock</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Price</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Status</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Actions</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.medicines")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.categories")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("dashboard.pharmacy.lowStock")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.price")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("pharmacies.open")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("common.edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -469,20 +483,20 @@ function InventoryTab() {
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Stock</DialogTitle>
+            <DialogTitle>{t("dashboard.pharmacy.updateStock")}</DialogTitle>
             <DialogDescription>
-              {selectedMedicine?.name} - Current stock: {selectedMedicine?.stockQuantity}
+              {selectedMedicine?.name} - {t("dashboard.pharmacy.lowStock")}: {selectedMedicine?.stockQuantity}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-2">
-              <Label htmlFor="new-stock">New Stock Quantity</Label>
-              <Input id="new-stock" type="number" placeholder="Enter new quantity" />
+              <Label htmlFor="new-stock">{t("dashboard.pharmacy.updateStock")}</Label>
+              <Input id="new-stock" type="number" placeholder={t("common.search")} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
-            <Button onClick={() => { success("Stock updated successfully"); setUpdateDialogOpen(false); }}>Update Stock</Button>
+            <Button variant="outline" onClick={() => setUpdateDialogOpen(false)}>{t("common.close")}</Button>
+            <Button onClick={() => { success(t("dashboard.pharmacy.updateStock")); setUpdateDialogOpen(false); }}>{t("dashboard.pharmacy.updateStock")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -491,6 +505,7 @@ function InventoryTab() {
 }
 
 function OrdersTabSection() {
+  const { t } = useLanguage();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { success } = useToast();
@@ -500,30 +515,30 @@ function OrdersTabSection() {
     : orders.filter((o) => o.status === statusFilter);
 
   const updateStatus = (orderId: string, newStatus: string) => {
-    success(`Order ${orderId} updated to "${newStatus}"`);
+    success(t("dashboard.pharmacy.orders"));
   };
 
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Orders</h2>
-          <p className="text-muted-foreground">Track and manage incoming orders</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.orders")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.orders")}</p>
         </div>
         <div className="w-full sm:w-48">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={t("common.search")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Orders</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="picked-up">Picked Up</SelectItem>
-              <SelectItem value="in-transit">In Transit</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">{t("dashboard.pharmacy.orders")}</SelectItem>
+              <SelectItem value="pending">{t("delivery.status.pending")}</SelectItem>
+              <SelectItem value="confirmed">{t("delivery.status.confirmed")}</SelectItem>
+              <SelectItem value="preparing">{t("delivery.status.preparing")}</SelectItem>
+              <SelectItem value="picked-up">{t("delivery.status.pickedUp")}</SelectItem>
+              <SelectItem value="in-transit">{t("delivery.status.inTransit")}</SelectItem>
+              <SelectItem value="delivered">{t("delivery.status.delivered")}</SelectItem>
+              <SelectItem value="cancelled">{t("delivery.status.cancelled")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -591,7 +606,7 @@ function OrdersTabSection() {
                     <div>
                       <h4 className="mb-2 text-sm font-semibold flex items-center gap-2">
                         <Package className="h-4 w-4" />
-                        Order Items
+                        {t("delivery.orderDetails")}
                       </h4>
                       <div className="space-y-2">
                         {order.items.map((item) => (
@@ -611,14 +626,14 @@ function OrdersTabSection() {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <span className="text-xs text-muted-foreground">Delivery Address</span>
+                        <span className="text-xs text-muted-foreground">{t("delivery.deliveryAddress")}</span>
                         <p className="text-sm font-medium">{order.deliveryAddress.street}</p>
                         <p className="text-xs text-muted-foreground">
                           {order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}
                         </p>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground">Payment</span>
+                        <span className="text-xs text-muted-foreground">{t("cart.total")}</span>
                         <p className="text-sm font-medium">{order.paymentMethod}</p>
                         <span className={cn(
                           "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium mt-1",
@@ -636,25 +651,25 @@ function OrdersTabSection() {
                       {order.status === "pending" && (
                         <Button size="sm" className="gap-1.5" onClick={() => updateStatus(order.id, "confirmed")}>
                           <CheckCircle2 className="h-4 w-4" />
-                          Confirm
+                          {t("delivery.status.confirmed")}
                         </Button>
                       )}
                       {order.status === "confirmed" && (
                         <Button size="sm" className="gap-1.5" onClick={() => updateStatus(order.id, "preparing")}>
                           <Package className="h-4 w-4" />
-                          Prepare
+                          {t("delivery.status.preparing")}
                         </Button>
                       )}
                       {order.status === "preparing" && (
                         <Button size="sm" className="gap-1.5" onClick={() => updateStatus(order.id, "picked-up")}>
                           <Truck className="h-4 w-4" />
-                          Pick Up
+                          {t("delivery.status.pickedUp")}
                         </Button>
                       )}
                       {order.status === "picked-up" && (
                         <Button size="sm" className="gap-1.5" onClick={() => updateStatus(order.id, "in-transit")}>
                           <Truck className="h-4 w-4" />
-                          Deliver
+                          {t("delivery.status.inTransit")}
                         </Button>
                       )}
                     </div>
@@ -670,6 +685,7 @@ function OrdersTabSection() {
 }
 
 function PricingTab() {
+  const { t } = useLanguage();
   const [prices, setPrices] = useState<Record<string, number>>(
     Object.fromEntries(medicines.map(m => [m.id, m.discountedPrice || m.unitPrice]))
   );
@@ -682,12 +698,12 @@ function PricingTab() {
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Pricing</h2>
-          <p className="text-muted-foreground">Manage medicine prices and discounts</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.pricing")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.pricing")}</p>
         </div>
-        <Button className="gap-1.5" onClick={() => success("Pricing changes saved successfully")}>
+        <Button className="gap-1.5" onClick={() => success(t("dashboard.pharmacy.saveChanges"))}>
           <CheckCircle2 className="h-4 w-4" />
-          Save Changes
+          {t("dashboard.pharmacy.saveChanges")}
         </Button>
       </motion.div>
 
@@ -697,12 +713,12 @@ function PricingTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Medicine</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Category</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Base Price</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Selling Price</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Discount %</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Actions</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.medicines")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.categories")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.price")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("dashboard.pharmacy.pricing")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.discounts")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("common.edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -752,7 +768,7 @@ function PricingTab() {
                       <div className="flex items-center justify-end gap-1">
                         <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
                           <Percent className="h-3 w-3" />
-                          Set Discount
+                          {t("dashboard.admin.discounts")}
                         </Button>
                       </div>
                     </td>
@@ -768,24 +784,25 @@ function PricingTab() {
 }
 
 function EmployeesTab() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Employees</h2>
-          <p className="text-muted-foreground">Manage your pharmacy staff</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.employees")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.employees")}</p>
         </div>
       </div>
       <Card>
         <CardContent className="py-16 text-center">
           <Users className="mx-auto h-16 w-16 text-muted-foreground/30" />
-          <h3 className="mt-4 text-xl font-semibold">Employee Management</h3>
+          <h3 className="mt-4 text-xl font-semibold">{t("dashboard.pharmacy.employees")}</h3>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            Employee management coming soon. You will be able to add, manage, and assign roles to your pharmacy staff.
+            {t("dashboard.admin.comingSoon")}
           </p>
           <Button className="mt-6 gap-1.5" disabled>
             <Plus className="h-4 w-4" />
-            Add Employee
+            {t("dashboard.admin.add")} {t("dashboard.pharmacy.employees")}
           </Button>
         </CardContent>
       </Card>
@@ -794,20 +811,21 @@ function EmployeesTab() {
 }
 
 function DeliveryTab() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Delivery</h2>
-          <p className="text-muted-foreground">Track deliveries and manage delivery partners</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.delivery")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.delivery")}</p>
         </div>
       </motion.div>
 
       <motion.div variants={itemVariants}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Active Deliveries</CardTitle>
-            <CardDescription>Currently active delivery orders</CardDescription>
+            <CardTitle className="text-lg">{t("dashboard.pharmacy.delivery")}</CardTitle>
+            <CardDescription>{t("dashboard.pharmacy.delivery")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {orders.filter(o => o.status === "in-transit" || o.status === "picked-up").length > 0 ? (
@@ -828,7 +846,7 @@ function DeliveryTab() {
             ) : (
               <div className="text-center py-8">
                 <Truck className="mx-auto h-12 w-12 text-muted-foreground/30" />
-                <p className="mt-3 text-sm text-muted-foreground">No active deliveries</p>
+                <p className="mt-3 text-sm text-muted-foreground">{t("common.noResults")}</p>
               </div>
             )}
           </CardContent>
@@ -839,15 +857,15 @@ function DeliveryTab() {
         <motion.div variants={itemVariants}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Delivery Map</CardTitle>
-              <CardDescription>Real-time delivery tracking</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.pharmacy.delivery")}</CardTitle>
+              <CardDescription>{t("dashboard.pharmacy.delivery")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-48 rounded-lg bg-muted/30 border-2 border-dashed">
                 <div className="text-center text-muted-foreground">
                   <MapPin className="mx-auto h-8 w-8 mb-2" />
-                  <p className="text-sm">Map placeholder</p>
-                  <p className="text-xs">Real-time tracking coming soon</p>
+                  <p className="text-sm">{t("dashboard.pharmacy.delivery")}</p>
+                  <p className="text-xs">{t("dashboard.admin.comingSoon")}</p>
                 </div>
               </div>
             </CardContent>
@@ -857,15 +875,15 @@ function DeliveryTab() {
         <motion.div variants={itemVariants}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Assign Delivery Partner</CardTitle>
-              <CardDescription>Assign a delivery person to an order</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.pharmacy.delivery")}</CardTitle>
+              <CardDescription>{t("dashboard.pharmacy.delivery")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-48 rounded-lg bg-muted/30 border-2 border-dashed">
                 <div className="text-center text-muted-foreground">
                   <Users className="mx-auto h-8 w-8 mb-2" />
-                  <p className="text-sm">Assign delivery partner</p>
-                  <p className="text-xs">Delivery partner assignment coming soon</p>
+                  <p className="text-sm">{t("dashboard.pharmacy.delivery")}</p>
+                  <p className="text-xs">{t("dashboard.admin.comingSoon")}</p>
                 </div>
               </div>
             </CardContent>
@@ -877,6 +895,7 @@ function DeliveryTab() {
 }
 
 function ReportsTab() {
+  const { t } = useLanguage();
   const todayRevenue = 4820;
   const weekRevenue = 34200;
   const monthRevenue = 128450;
@@ -886,17 +905,17 @@ function ReportsTab() {
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Reports</h2>
-          <p className="text-muted-foreground">View and export sales reports</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.reports")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.pharmacy.reports")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-1.5">
             <Download className="h-4 w-4" />
-            Export CSV
+            {t("dashboard.pharmacy.exportCSV")}
           </Button>
           <Button className="gap-1.5">
             <FileText className="h-4 w-4" />
-            Generate Report
+            {t("dashboard.pharmacy.generateReport")}
           </Button>
         </div>
       </motion.div>
@@ -905,14 +924,14 @@ function ReportsTab() {
         <motion.div variants={itemVariants}>
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-950/10 border-blue-200/50 dark:border-blue-800/30">
             <CardHeader className="pb-2">
-              <CardDescription className="text-blue-700 dark:text-blue-400 font-medium">Today</CardDescription>
+              <CardDescription className="text-blue-700 dark:text-blue-400 font-medium">{t("dashboard.pharmacy.overview")}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{formatPrice(todayRevenue)}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
                 <TrendingUp className="h-3 w-3 text-emerald-500" />
                 <span className="text-emerald-500">+5.2%</span>
-                <span className="text-muted-foreground">vs yesterday</span>
+                <span className="text-muted-foreground">{t("dashboard.pharmacy.overview")}</span>
               </div>
             </CardContent>
           </Card>
@@ -921,14 +940,14 @@ function ReportsTab() {
         <motion.div variants={itemVariants}>
           <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/20 dark:to-emerald-950/10 border-emerald-200/50 dark:border-emerald-800/30">
             <CardHeader className="pb-2">
-              <CardDescription className="text-emerald-700 dark:text-emerald-400 font-medium">This Week</CardDescription>
+              <CardDescription className="text-emerald-700 dark:text-emerald-400 font-medium">{t("dashboard.pharmacy.overview")}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{formatPrice(weekRevenue)}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
                 <TrendingUp className="h-3 w-3 text-emerald-500" />
                 <span className="text-emerald-500">+8.7%</span>
-                <span className="text-muted-foreground">vs last week</span>
+                <span className="text-muted-foreground">{t("dashboard.pharmacy.reports")}</span>
               </div>
             </CardContent>
           </Card>
@@ -937,14 +956,14 @@ function ReportsTab() {
         <motion.div variants={itemVariants}>
           <Card className="bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-950/20 dark:to-violet-950/10 border-violet-200/50 dark:border-violet-800/30">
             <CardHeader className="pb-2">
-              <CardDescription className="text-violet-700 dark:text-violet-400 font-medium">This Month</CardDescription>
+              <CardDescription className="text-violet-700 dark:text-violet-400 font-medium">{t("dashboard.pharmacy.reports")}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">{formatPrice(monthRevenue)}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
                 <TrendingUp className="h-3 w-3 text-emerald-500" />
                 <span className="text-emerald-500">+12.3%</span>
-                <span className="text-muted-foreground">vs last month</span>
+                <span className="text-muted-foreground">{t("dashboard.pharmacy.reports")}</span>
               </div>
             </CardContent>
           </Card>
@@ -953,14 +972,14 @@ function ReportsTab() {
         <motion.div variants={itemVariants}>
           <Card className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-950/10 border-amber-200/50 dark:border-amber-800/30">
             <CardHeader className="pb-2">
-              <CardDescription className="text-amber-700 dark:text-amber-400 font-medium">This Year</CardDescription>
+              <CardDescription className="text-amber-700 dark:text-amber-400 font-medium">{t("dashboard.pharmacy.reports")}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{formatPrice(yearRevenue)}</p>
               <div className="flex items-center gap-1 mt-1 text-xs">
                 <TrendingUp className="h-3 w-3 text-emerald-500" />
                 <span className="text-emerald-500">+22.1%</span>
-                <span className="text-muted-foreground">vs last year</span>
+                <span className="text-muted-foreground">{t("dashboard.pharmacy.reports")}</span>
               </div>
             </CardContent>
           </Card>
@@ -970,8 +989,8 @@ function ReportsTab() {
       <motion.div variants={itemVariants}>
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Monthly Revenue Report</CardTitle>
-            <CardDescription>Revenue breakdown by month</CardDescription>
+            <CardTitle className="text-lg">{t("dashboard.pharmacy.reports")}</CardTitle>
+            <CardDescription>{t("dashboard.pharmacy.salesAnalytics")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
@@ -996,6 +1015,7 @@ function ReportsTab() {
 }
 
 function SalesAnalyticsTab() {
+  const { t } = useLanguage();
   const revenue7Days = [
     { day: "Mon", revenue: 4200 },
     { day: "Tue", revenue: 3800 },
@@ -1023,8 +1043,8 @@ function SalesAnalyticsTab() {
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants}>
-        <h2 className="text-2xl font-bold">Sales Analytics</h2>
-        <p className="text-muted-foreground">Detailed insights into your pharmacy&apos;s performance</p>
+        <h2 className="text-2xl font-bold">{t("dashboard.pharmacy.salesAnalytics")}</h2>
+        <p className="text-muted-foreground">{t("dashboard.pharmacy.salesAnalytics")}</p>
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -1032,8 +1052,8 @@ function SalesAnalyticsTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Revenue (Last 7 Days)</CardTitle>
-                <CardDescription>Daily revenue trend</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.pharmacy.totalRevenue")}</CardTitle>
+                <CardDescription>{t("dashboard.pharmacy.salesAnalytics")}</CardDescription>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
                 <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -1059,8 +1079,8 @@ function SalesAnalyticsTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Top Selling Medicines</CardTitle>
-                <CardDescription>Most ordered medicines</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.admin.medicines")}</CardTitle>
+                <CardDescription>{t("dashboard.pharmacy.orders")}</CardDescription>
               </div>
               <BarChart3 className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
@@ -1085,8 +1105,8 @@ function SalesAnalyticsTab() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-0">
             <div>
-              <CardTitle className="text-lg">Orders by Hour</CardTitle>
-              <CardDescription>Order volume throughout the day</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.pharmacy.orders")}</CardTitle>
+              <CardDescription>{t("dashboard.pharmacy.orders")}</CardDescription>
             </div>
             <Clock className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
@@ -1109,18 +1129,8 @@ function SalesAnalyticsTab() {
   );
 }
 
-const tabLabels: Record<PharmacyTab, string> = {
-  overview: "Overview",
-  inventory: "Inventory",
-  orders: "Orders",
-  pricing: "Pricing",
-  employees: "Staff",
-  delivery: "Delivery",
-  reports: "Reports",
-  "sales-analytics": "Analytics",
-};
-
 export default function PharmacyDashboardPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<PharmacyTab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -1141,7 +1151,7 @@ export default function PharmacyDashboardPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-xs font-bold shadow">
             <Store className="h-4 w-4" />
           </div>
-          <span className="font-semibold">Pharmacy</span>
+          <span className="font-semibold">{t("nav.dashboard")}</span>
         </div>
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">PM</AvatarFallback>
@@ -1174,7 +1184,7 @@ export default function PharmacyDashboardPage() {
               </div>
               <div>
                 <p className="font-semibold leading-tight">{pharmacy.name}</p>
-                <p className="text-xs text-muted-foreground">Pharmacy Manager</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.pharmacy.employees")}</p>
               </div>
             </div>
 
@@ -1194,7 +1204,7 @@ export default function PharmacyDashboardPage() {
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <span>{t(tabLabelKeys[item.id])}</span>
                       {activeTab === item.id && (
                         <ChevronRight className="ml-auto h-4 w-4 shrink-0" />
                       )}
@@ -1207,7 +1217,7 @@ export default function PharmacyDashboardPage() {
             <div className="border-t p-4">
               <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                {t("nav.signOut")}
               </Button>
             </div>
           </div>
@@ -1242,7 +1252,7 @@ export default function PharmacyDashboardPage() {
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="text-[10px] font-medium truncate w-full text-center">
-                  {tabLabels[item.id]}
+                  {t(tabLabelKeys[item.id])}
                 </span>
                 {activeTab === item.id && (
                   <motion.div
@@ -1258,7 +1268,7 @@ export default function PharmacyDashboardPage() {
             className="flex flex-col items-center justify-center gap-1 py-2 px-3 text-muted-foreground min-w-0"
           >
             <MoreHorizontal className="h-5 w-5" />
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-medium">{t("common.viewAll")}</span>
           </button>
         </div>
       </nav>

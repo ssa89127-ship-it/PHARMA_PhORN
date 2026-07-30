@@ -31,10 +31,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { cn, formatPrice, slugify } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import { medicines, medicinePrices } from "@/lib/data";
 import { useCart } from "@/store/cart";
 import type { Medicine, MedicinePrice } from "@/types";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "destructive" | "outline"> = {
   tablet: "primary",
@@ -49,11 +50,6 @@ const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "dest
   ointment: "outline",
 };
 
-function getFormLabel(form: string): string {
-  if (!form) return "";
-  return form.charAt(0).toUpperCase() + form.slice(1);
-}
-
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
@@ -66,6 +62,7 @@ const stagger = {
 
 export default function MedicineDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const { t } = useLanguage();
   const [quantity, setQuantity] = useState(1);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -177,6 +174,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
 }
 
 function NotFound() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-[70vh] flex items-center justify-center">
       <motion.div
@@ -187,15 +185,14 @@ function NotFound() {
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-destructive/20 to-destructive/10 flex items-center justify-center mx-auto mb-6 border border-destructive/20">
           <AlertCircle className="w-10 h-10 text-destructive" />
         </div>
-        <h1 className="text-2xl font-bold mb-3">Medicine not found</h1>
+        <h1 className="text-2xl font-bold mb-3">{t("common.error")}</h1>
         <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
-          The medicine you are looking for does not exist or may have been removed. Please check the URL or browse our
-          medicine catalog.
+          {t("common.noResults")}
         </p>
         <Link href="/medicines">
           <Button variant="primary" size="lg">
             <ChevronLeft className="w-4 h-4 mr-1" />
-            Back to Medicines
+            {t("nav.back")}
           </Button>
         </Link>
       </motion.div>
@@ -204,6 +201,7 @@ function NotFound() {
 }
 
 function Breadcrumb({ medicineName }: { medicineName: string }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -212,11 +210,11 @@ function Breadcrumb({ medicineName }: { medicineName: string }) {
     >
       <nav className="flex items-center gap-2 text-sm text-muted-foreground py-3">
         <Link href="/" className="hover:text-foreground transition-colors">
-          Home
+          {t("nav.home")}
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <Link href="/medicines" className="hover:text-foreground transition-colors">
-          Medicines
+          {t("medicines.title")}
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-foreground font-medium truncate max-w-[200px]">{medicineName}</span>
@@ -232,6 +230,7 @@ function HeroSection({
   medicine: Medicine;
   cheapestPrice: MedicinePrice | null;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
       <Card className="overflow-hidden">
@@ -261,14 +260,14 @@ function HeroSection({
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   {medicine.prescriptionRequired && (
                     <Badge variant="destructive" className="text-[10px] font-bold px-2 py-0.5">
-                      Prescription Required
+                      {t("medicines.prescription")}
                     </Badge>
                   )}
                   <Badge
                     variant={formVariantMap[medicine.form] ?? "outline"}
                     className="text-[10px] px-2 py-0.5"
                   >
-                    {getFormLabel(medicine.form)}
+                    {t(`medicines.formLabels.${medicine.form}`)}
                   </Badge>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold leading-tight">{medicine.name}</h1>
@@ -289,7 +288,7 @@ function HeroSection({
               </div>
               {(medicine.discount ?? 0) > 0 && (
                 <Badge variant="success" className="text-xs font-semibold">
-                  Save {medicine.discount}%
+                  {t("medicines.priceComparison.save")} {medicine.discount}%
                 </Badge>
               )}
             </div>
@@ -301,7 +300,7 @@ function HeroSection({
               </span>
               <span className="flex items-center gap-1.5">
                 <Package className="w-4 h-4 text-primary" />
-                {medicine.dosage} · {getFormLabel(medicine.form)}
+                {medicine.dosage} · {t(`medicines.formLabels.${medicine.form}`)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Scale className="w-4 h-4 text-primary" />
@@ -316,31 +315,32 @@ function HeroSection({
 }
 
 function MedicineInfo({ medicine }: { medicine: Medicine }) {
+  const { t } = useLanguage();
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
       <Card className="p-6 md:p-8">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Info className="w-5 h-5 text-primary" />
-          About this medicine
+          {t("medicines.description")}
         </h2>
 
         <p className="text-sm text-muted-foreground leading-relaxed mb-6">{medicine.description}</p>
 
         <div className="grid sm:grid-cols-2 gap-4">
-          <DetailRow label="Generic Name" value={medicine.genericName} />
-          <DetailRow label="Manufacturer" value={medicine.manufacturer} />
-          <DetailRow label="Category" value={medicine.category} />
-          <DetailRow label="Dosage" value={medicine.dosage} />
-          <DetailRow label="Strength" value={medicine.strength} />
-          <DetailRow label="Form" value={getFormLabel(medicine.form)} />
+          <DetailRow label={t("medicines.manufacturer")} value={medicine.genericName} />
+          <DetailRow label={t("medicines.manufacturer")} value={medicine.manufacturer} />
+          <DetailRow label={t("medicines.description")} value={medicine.category} />
+          <DetailRow label={t("medicines.dosage")} value={medicine.dosage} />
+          <DetailRow label={t("medicines.description")} value={medicine.strength} />
+          <DetailRow label={t("medicines.form")} value={t(`medicines.formLabels.${medicine.form}`)} />
           <DetailRow
-            label="Prescription"
-            value={medicine.prescriptionRequired ? "Required" : "Not Required"}
+            label={t("medicines.prescription")}
+            value={medicine.prescriptionRequired ? t("medicines.prescription") : t("medicines.noPrescription")}
             valueClass={medicine.prescriptionRequired ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}
           />
           <DetailRow
-            label="Stock"
-            value={medicine.isAvailable ? `In Stock (${medicine.stockQuantity} units)` : "Out of Stock"}
+            label={t("medicines.inStock")}
+            value={medicine.isAvailable ? `${t("medicines.inStock")} (${medicine.stockQuantity})` : t("medicines.outOfStock")}
             valueClass={medicine.isAvailable ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}
           />
         </div>
@@ -349,7 +349,7 @@ function MedicineInfo({ medicine }: { medicine: Medicine }) {
           <div className="mt-6 pt-6 border-t border-border/50">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <HeartPulse className="w-4 h-4 text-primary" />
-              Possible Side Effects
+              {t("medicines.sideEffects")}
             </h3>
             <div className="flex flex-wrap gap-2">
               {medicine.sideEffects.map((effect) => (
@@ -395,6 +395,7 @@ function PriceComparisonSection({
   selectedPrice: MedicinePrice | null;
   onSelectPharmacy: (id: string | null) => void;
 }) {
+  const { t } = useLanguage();
   const sortedByTotal = useMemo(
     () => [...availablePrices].sort((a, b) => a.price + a.deliveryFee - (b.price + b.deliveryFee)),
     [availablePrices]
@@ -407,10 +408,10 @@ function PriceComparisonSection({
       <Card className="p-6 md:p-8">
         <div className="flex items-center gap-2 mb-6">
           <Store className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold">Price Comparison</h2>
+          <h2 className="text-lg font-semibold">{t("medicines.priceComparison.title")}</h2>
           {sortedByTotal.length > 0 && (
             <Badge variant="secondary" className="text-[10px] font-normal">
-              {sortedByTotal.length} {sortedByTotal.length === 1 ? "pharmacy" : "pharmacies"}
+              {sortedByTotal.length} {t("medicines.priceComparison.pharmacy")}
             </Badge>
           )}
         </div>
@@ -418,7 +419,7 @@ function PriceComparisonSection({
         {sortedByTotal.length === 0 && unavailablePrices.length === 0 && (
           <div className="text-center py-10">
             <AlertCircle className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">No pricing data available for this medicine yet.</p>
+            <p className="text-sm text-muted-foreground">{t("common.noResults")}</p>
           </div>
         )}
 
@@ -447,7 +448,7 @@ function PriceComparisonSection({
                     <div className="absolute -top-2.5 right-3">
                       <Badge variant="success" className="text-[10px] font-bold px-2 py-0.5 gap-1">
                         <Award className="w-3 h-3" />
-                        Best Price
+                        {t("medicines.bestPrice")}
                       </Badge>
                     </div>
                   )}
@@ -488,29 +489,29 @@ function PriceComparisonSection({
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
                         <Truck className="w-3 h-3" />
-                        {price.deliveryFee === 0 ? "Free delivery" : `${formatPrice(price.deliveryFee)} delivery`}
+                        {price.deliveryFee === 0 ? t("pharmacies.freeDelivery") : `${formatPrice(price.deliveryFee)} ${t("pharmacies.deliveryFee")}`}
                       </span>
                       <span className="flex items-center gap-1">
                         {price.isAvailable ? (
                           <>
                             <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                            In stock
+                            {t("medicines.inStock")}
                           </>
                         ) : (
                           <>
                             <AlertCircle className="w-3 h-3 text-destructive" />
-                            Out of stock
+                            {t("medicines.outOfStock")}
                           </>
                         )}
                       </span>
                     </div>
-                    <span className="font-semibold text-foreground">Total: {formatPrice(totalPrice)}</span>
+                    <span className="font-semibold text-foreground">{t("medicines.priceComparison.total")}: {formatPrice(totalPrice)}</span>
                   </div>
 
                   {i > 0 && cheapestTotal !== null && totalPrice - cheapestTotal > 0 && (
                     <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
                       <Info className="w-3 h-3" />
-                      {formatPrice(totalPrice - cheapestTotal)} more than the best price
+                      {t("medicines.priceComparison.save")} {formatPrice(totalPrice - cheapestTotal)}
                     </p>
                   )}
                 </motion.div>
@@ -522,7 +523,7 @@ function PriceComparisonSection({
         {unavailablePrices.length > 0 && (
           <div className="mt-4">
             <p className="text-xs text-muted-foreground mb-2 font-medium">
-              Unavailable at these pharmacies:
+              {t("medicines.outOfStock")}
             </p>
             <div className="space-y-2">
               {unavailablePrices.map((price) => (
@@ -537,7 +538,7 @@ function PriceComparisonSection({
                     <p className="text-sm truncate">{price.pharmacyName}</p>
                   </div>
                   <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
-                    Unavailable
+                    {t("medicines.outOfStock")}
                   </Badge>
                 </div>
               ))}
@@ -550,14 +551,15 @@ function PriceComparisonSection({
 }
 
 function AlternativesSection({ medicines: altMedicines }: { medicines: Medicine[] }) {
+  const { t } = useLanguage();
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
       <Card className="p-6 md:p-8">
         <div className="flex items-center gap-2 mb-5">
           <Scale className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold">Alternative Medicines</h2>
+          <h2 className="text-lg font-semibold">{t("medicines.alternatives")}</h2>
           <Badge variant="secondary" className="text-[10px] font-normal">
-            {altMedicines.length} {altMedicines.length === 1 ? "option" : "options"}
+            {altMedicines.length} {t("medicines.alternatives")}
           </Badge>
         </div>
 
@@ -586,12 +588,12 @@ function AlternativesSection({ medicines: altMedicines }: { medicines: Medicine[
                           variant={formVariantMap[alt.form] ?? "outline"}
                           className="text-[9px] leading-none px-1.5 py-0.5"
                         >
-                          {getFormLabel(alt.form)}
+                          {t(`medicines.formLabels.${alt.form}`)}
                         </Badge>
                         {alt.prescriptionRequired && (
                           <>
                             <span>·</span>
-                            <span className="text-destructive">Rx</span>
+                            <span className="text-destructive">{t("medicines.prescription")}</span>
                           </>
                         )}
                       </div>
@@ -619,12 +621,13 @@ function AlternativesSection({ medicines: altMedicines }: { medicines: Medicine[
 }
 
 function ReviewsPlaceholder() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
       <Card className="p-6 md:p-8">
         <div className="flex items-center gap-2 mb-5">
           <MessageSquare className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold">Reviews</h2>
+          <h2 className="text-lg font-semibold">{t("medicines.reviews")}</h2>
         </div>
 
         <div className="text-center py-10">
@@ -635,9 +638,9 @@ function ReviewsPlaceholder() {
           >
             <MessageSquare className="w-7 h-7 text-primary/60" />
           </motion.div>
-          <p className="text-sm font-medium text-foreground mb-1">Reviews coming soon</p>
+          <p className="text-sm font-medium text-foreground mb-1">{t("medicines.reviews")}</p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-            Patient reviews and ratings for this medicine will be available in a future update.
+            {t("common.loading")}
           </p>
         </div>
       </Card>
@@ -666,6 +669,7 @@ function Sidebar({
   onAddToCart: () => void;
   addedToCart: boolean;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-5 lg:sticky lg:top-24">
       <motion.div
@@ -676,13 +680,13 @@ function Sidebar({
         <Card className="p-6">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <ShoppingCart className="w-4 h-4 text-primary" />
-            Add to Cart
+            {t("medicines.addToCart")}
           </h3>
 
           <div className="space-y-4">
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                Pharmacy
+                {t("medicines.priceComparison.pharmacy")}
               </label>
               {selectedPrice ? (
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -694,14 +698,14 @@ function Sidebar({
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span>{formatPrice(selectedPrice.price)}</span>
                       {selectedPrice.deliveryFee > 0 && (
-                        <span>+ {formatPrice(selectedPrice.deliveryFee)} delivery</span>
+                        <span>+ {formatPrice(selectedPrice.deliveryFee)} {t("pharmacies.deliveryFee")}</span>
                       )}
                     </div>
                   </div>
                   {cheapestPrice?.pharmacyId === selectedPrice.pharmacyId && (
                     <Badge variant="success" className="text-[9px] px-1.5 py-0.5 gap-0.5 shrink-0">
                       <Award className="w-2.5 h-2.5" />
-                      Best
+                      {t("medicines.bestPrice")}
                     </Badge>
                   )}
                 </div>
@@ -709,8 +713,8 @@ function Sidebar({
                 <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
                   <p className="text-xs text-muted-foreground">
                     {availablePrices.length === 0
-                      ? "No pharmacies available"
-                      : "Select a pharmacy from the price comparison below"}
+                      ? t("common.noResults")
+                      : t("medicines.compare")}
                   </p>
                 </div>
               )}
@@ -718,7 +722,7 @@ function Sidebar({
 
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                Quantity
+                {t("medicines.dosage")}
               </label>
               <div className="flex items-center gap-3">
                 <button
@@ -743,7 +747,7 @@ function Sidebar({
 
             {selectedPrice && (
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground">Subtotal</span>
+                <span className="text-sm text-muted-foreground">{t("cart.subtotal")}</span>
                 <span className="text-xl font-bold">{formatPrice(selectedPrice.price * quantity)}</span>
               </div>
             )}
@@ -765,7 +769,7 @@ function Sidebar({
                     className="flex items-center gap-2"
                   >
                     <CheckCircle2 className="w-5 h-5" />
-                    Added to Cart
+                    {t("medicines.addToCart")}
                   </motion.span>
                 ) : (
                   <motion.span
@@ -776,7 +780,7 @@ function Sidebar({
                     className="flex items-center gap-2"
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    Add to Cart
+                    {t("medicines.addToCart")}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -793,13 +797,13 @@ function Sidebar({
         <Card className="p-6">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <Building2 className="w-4 h-4 text-primary" />
-            Available Pharmacies
+            {t("pharmacies.title")}
           </h3>
 
           {availablePrices.length === 0 && unavailablePrices.length === 0 && (
             <div className="text-center py-6">
               <Store className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">No pharmacies listed yet</p>
+              <p className="text-xs text-muted-foreground">{t("common.noResults")}</p>
             </div>
           )}
 
@@ -824,7 +828,7 @@ function Sidebar({
                     {i === 0 && (
                       <Badge variant="success" className="text-[8px] px-1.5 py-0 gap-0.5">
                         <Award className="w-2 h-2" />
-                        Best
+                        {t("medicines.bestPrice")}
                       </Badge>
                     )}
                   </div>
@@ -846,7 +850,7 @@ function Sidebar({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate text-muted-foreground">{price.pharmacyName}</p>
-                  <p className="text-xs text-muted-foreground">Currently unavailable</p>
+                  <p className="text-xs text-muted-foreground">{t("medicines.outOfStock")}</p>
                 </div>
               </div>
             ))}
@@ -862,7 +866,7 @@ function Sidebar({
         <Card className="p-6">
           <h3 className="font-semibold text-sm mb-4 flex items-center gap-2">
             <Timer className="w-4 h-4 text-primary" />
-            Delivery Estimate
+            {t("pharmacies.deliveryTime")}
           </h3>
 
           {cheapestPrice ? (
@@ -873,7 +877,7 @@ function Sidebar({
                 </div>
                 <div>
                   <p className="text-sm font-semibold">{cheapestPrice.deliveryTime}</p>
-                  <p className="text-xs text-muted-foreground">Estimated delivery time</p>
+                  <p className="text-xs text-muted-foreground">{t("pharmacies.deliveryTime")}</p>
                 </div>
               </div>
 
@@ -884,11 +888,11 @@ function Sidebar({
                 <div>
                   <p className="text-sm font-semibold">
                     {cheapestPrice.deliveryFee === 0
-                      ? "Free Delivery"
-                      : `${formatPrice(cheapestPrice.deliveryFee)} delivery fee`}
+                      ? t("pharmacies.freeDelivery")
+                      : `${formatPrice(cheapestPrice.deliveryFee)} ${t("pharmacies.deliveryFee")}`}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    From {cheapestPrice.pharmacyName}
+                    {cheapestPrice.pharmacyName}
                   </p>
                 </div>
               </div>
@@ -896,7 +900,7 @@ function Sidebar({
           ) : (
             <div className="text-center py-6">
               <Truck className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-xs text-muted-foreground">Delivery info unavailable</p>
+              <p className="text-xs text-muted-foreground">{t("common.noResults")}</p>
             </div>
           )}
 
@@ -904,7 +908,7 @@ function Sidebar({
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Shield className="w-3.5 h-3.5" />
-            <span>Secure payment &amp; encrypted checkout</span>
+            <span>{t("common.share")}</span>
           </div>
         </Card>
       </motion.div>

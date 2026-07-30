@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useLanguage } from "@/i18n/LanguageProvider"
 import { motion } from "framer-motion"
 import { Mail, Lock, Eye, EyeOff, Pill } from "lucide-react"
 import Link from "next/link"
@@ -22,6 +23,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const { t } = useLanguage()
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -105,8 +107,8 @@ export default function LoginPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h2 className="text-3xl font-bold mb-1">Welcome back</h2>
-              <p className="text-muted-foreground mb-8">Sign in to your account to continue</p>
+              <h2 className="text-3xl font-bold mb-1">{t("auth.login.title")}</h2>
+              <p className="text-muted-foreground mb-8">{t("auth.login.subtitle")}</p>
             </motion.div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -115,8 +117,8 @@ export default function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Input
-                  label="Email"
+                  <Input
+                  label={t("auth.login.email")}
                   type="email"
                   placeholder="name@example.com"
                   icon={<Mail className="w-4 h-4" />}
@@ -131,8 +133,8 @@ export default function LoginPage() {
                 transition={{ delay: 0.35 }}
                 className="relative"
               >
-                <Input
-                  label="Password"
+                  <Input
+                  label={t("auth.login.password")}
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   icon={<Lock className="w-4 h-4" />}
@@ -156,13 +158,13 @@ export default function LoginPage() {
               >
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox {...register("rememberMe")} />
-                  <span className="text-sm text-muted-foreground">Remember me</span>
+                  <span className="text-sm text-muted-foreground">{t("auth.login.remember")}</span>
                 </label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
-                  Forgot password?
+                  {t("auth.login.forgotPassword")}
                 </Link>
               </motion.div>
 
@@ -172,7 +174,7 @@ export default function LoginPage() {
                 transition={{ delay: 0.45 }}
               >
                 <Button type="submit" loading={isSubmitting} className="w-full h-11" size="lg">
-                  Sign In
+                  {t("auth.login.signIn")}
                 </Button>
               </motion.div>
             </form>
@@ -187,7 +189,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-4 text-muted-foreground">or continue with</span>
+                <span className="bg-card px-4 text-muted-foreground">{t("auth.login.orContinueWith")}</span>
               </div>
             </motion.div>
 
@@ -220,9 +222,9 @@ export default function LoginPage() {
               transition={{ delay: 0.6 }}
               className="text-center text-sm text-muted-foreground mt-8"
             >
-              Don&apos;t have an account?{" "}
+              {t("auth.login.noAccount")}{" "}
               <Link href="/auth/register" className="text-primary font-medium hover:text-primary/80 transition-colors">
-                Create one
+                {t("auth.login.signUp")}
               </Link>
             </motion.p>
           </div>

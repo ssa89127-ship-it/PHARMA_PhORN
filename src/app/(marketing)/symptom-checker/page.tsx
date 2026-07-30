@@ -157,32 +157,20 @@ const mockHistory: HistoryItem[] = [
   },
 ];
 
-const urgencyConfig: Record<UrgencyLevel, { labelUz: string; labelRu: string; labelEn: string; color: string; badgeVariant: "success" | "warning" | "destructive" | "primary" }> = {
+const urgencyConfig: Record<UrgencyLevel, { color: string; badgeVariant: "success" | "warning" | "destructive" | "primary" }> = {
   low: {
-    labelUz: "Past",
-    labelRu: "Низкий",
-    labelEn: "Low",
     color: "text-emerald-600 dark:text-emerald-400",
     badgeVariant: "success",
   },
   medium: {
-    labelUz: "O'rtacha",
-    labelRu: "Средний",
-    labelEn: "Medium",
     color: "text-amber-600 dark:text-amber-400",
     badgeVariant: "warning",
   },
   high: {
-    labelUz: "Yuqori",
-    labelRu: "Высокий",
-    labelEn: "High",
     color: "text-orange-600 dark:text-orange-400",
     badgeVariant: "destructive",
   },
   emergency: {
-    labelUz: "Favqulodda",
-    labelRu: "Чрезвычайный",
-    labelEn: "Emergency",
     color: "text-red-600 dark:text-red-400",
     badgeVariant: "destructive",
   },
@@ -257,7 +245,7 @@ export default function SymptomCheckerPage() {
               { name: "Allergik reaksiya", probability: 48 },
               { name: "Vitamin yetishmasligi", probability: 25 },
             ],
-        recommendedAction: data.recommendedAction || "Shifokor bilan maslahatlashish tavsiya etiladi",
+        recommendedAction: data.recommendedAction || t("symptomChecker.defaultAction"),
         urgency: data.urgency || "low",
         suggestedMedicines: ["Paratsetamol 500mg", "Vitamin C 500mg"],
       };
@@ -276,9 +264,9 @@ export default function SymptomCheckerPage() {
     } catch {
       setResult({
         possibleConditions: [
-          { name: "Tahlil qilishda xatolik", probability: 0 },
+          { name: t("symptomChecker.errorTitle"), probability: 0 },
         ],
-        recommendedAction: "Iltimos, qayta urinib ko'ring yoki shifokor bilan bog'laning",
+        recommendedAction: t("symptomChecker.errorAction"),
         urgency: "low",
       });
     } finally {
@@ -311,11 +299,7 @@ export default function SymptomCheckerPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6"
             >
               <Sparkles className="w-4 h-4" />
-              {language === "uz"
-                ? "AI bilan ishlaydigan tahlil"
-                : language === "ru"
-                  ? "Анализ на базе ИИ"
-                  : "AI-Powered Analysis"}
+              {t("hero.badge")}
             </motion.div>
 
             <motion.div
@@ -329,11 +313,7 @@ export default function SymptomCheckerPage() {
               </div>
               <div>
                 <h1 className="heading-xl mb-1 leading-tight">
-                  {language === "uz"
-                    ? "Simptomlarni tekshirish"
-                    : language === "ru"
-                      ? "Проверка симптомов"
-                      : "Symptom Checker"}
+                  {t("symptomChecker.title")}
                 </h1>
               </div>
             </motion.div>
@@ -344,11 +324,7 @@ export default function SymptomCheckerPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-base md:text-lg text-muted-foreground mb-8 max-w-2xl leading-relaxed"
             >
-              {language === "uz"
-                ? "Simptomlaringizni tavsiflang, bizning AI tahlilchimiz mumkin bo'lgan tashhislarni aniqlaydi va keyingi qadamlarni taklif qiladi."
-                : language === "ru"
-                  ? "Опишите свои симптомы, и наш ИИ-анализатор определит возможные диагнозы и предложит следующие шаги."
-                  : "Describe your symptoms and our AI analyzer will identify possible conditions and suggest next steps."}
+              {t("symptomChecker.description")}
             </motion.p>
 
             <motion.div
@@ -360,22 +336,14 @@ export default function SymptomCheckerPage() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    {language === "uz"
-                      ? "Simptomlaringizni tavsiflang"
-                      : language === "ru"
-                        ? "Опишите ваши симптомы"
-                        : "Describe your symptoms"}
+                    {t("symptomChecker.label")}
                   </label>
                   <div className="relative">
                     <textarea
                       value={symptomText}
                       onChange={(e) => setSymptomText(e.target.value)}
                       placeholder={
-                        language === "uz"
-                          ? "Misol: Boshim og'riyapti, isitmam bor va tomog'im qichishyapti..."
-                          : language === "ru"
-                            ? "Пример: У меня болит голова, температура и першит в горле..."
-                            : "E.g., I have a headache, fever, and a sore throat..."
+                        t("symptomChecker.placeholder")
                       }
                       rows={5}
                       className="flex w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200 resize-none"
@@ -388,7 +356,7 @@ export default function SymptomCheckerPage() {
                         }}
                         className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted/50 transition-colors"
                       >
-                        <span className="sr-only">Clear</span>
+                        <span className="sr-only">{t("symptomChecker.clear")}</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted-foreground">
                           <path d="M18 6L6 18M6 6l12 12" />
                         </svg>
@@ -399,11 +367,7 @@ export default function SymptomCheckerPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-3">
-                    {language === "uz"
-                      ? "Tana qismini tanlang"
-                      : language === "ru"
-                        ? "Выберите часть тела"
-                        : "Select a body part"}
+                    {t("symptomChecker.selectBodyPart")}
                   </label>
                   <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
                     {bodyParts.map((part) => {
@@ -476,20 +440,12 @@ export default function SymptomCheckerPage() {
                     {isAnalyzing ? (
                       <>
                         <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        {language === "uz"
-                          ? "Tahlil qilinmoqda..."
-                          : language === "ru"
-                            ? "Анализируется..."
-                            : "Analyzing..."}
+                        {t("common.loading")}
                       </>
                     ) : (
                       <>
                         <Scan className="w-5 h-5 mr-2" />
-                        {language === "uz"
-                          ? "Tahlil qilish"
-                          : language === "ru"
-                            ? "Анализировать"
-                            : "Analyze"}
+                        {t("symptomChecker.analyze")}
                       </>
                     )}
                   </Button>
@@ -523,11 +479,7 @@ export default function SymptomCheckerPage() {
                     <div className="flex items-center gap-2">
                       <Clock className="w-5 h-5 text-primary" />
                       <h3 className="font-semibold">
-                        {language === "uz"
-                          ? "Tekshirishlar tarixi"
-                          : language === "ru"
-                            ? "История проверок"
-                            : "Check History"}
+                      {t("symptomChecker.history")}
                       </h3>
                     </div>
                     <Button
@@ -535,7 +487,7 @@ export default function SymptomCheckerPage() {
                       size="sm"
                       onClick={() => setShowHistory(false)}
                     >
-                      <span className="sr-only">Close</span>
+                      <span className="sr-only">{t("common.close")}</span>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
@@ -563,7 +515,7 @@ export default function SymptomCheckerPage() {
                             </p>
                           </div>
                           <Badge variant={urg.badgeVariant} className="shrink-0 text-[10px]">
-                            {language === "uz" ? urg.labelUz : language === "ru" ? urg.labelRu : urg.labelEn}
+                            {t(`symptomChecker.urgency.${item.urgency}`)}
                           </Badge>
                         </div>
                       );
@@ -592,11 +544,7 @@ export default function SymptomCheckerPage() {
                   </div>
                   <h2 className="heading-sm">
                     <span className="text-gradient">
-                      {language === "uz"
-                        ? "Tahlil natijalari"
-                        : language === "ru"
-                          ? "Результаты анализа"
-                          : "Analysis Results"}
+                      {t("symptomChecker.results")}
                     </span>
                   </h2>
                 </div>
@@ -608,22 +556,14 @@ export default function SymptomCheckerPage() {
                         <div className="flex items-center gap-2">
                           <AlertTriangle className="w-5 h-5 text-primary" />
                           <h3 className="font-semibold">
-                            {language === "uz"
-                              ? "Shoshilinchlik darajasi"
-                              : language === "ru"
-                                ? "Уровень срочности"
-                                : "Urgency Level"}
+                          {t("symptomChecker.urgencyLevel")}
                           </h3>
                         </div>
                         <Badge
                           variant={urgencyConfig[result.urgency].badgeVariant}
                           className="text-sm px-4 py-1.5"
                         >
-                          {language === "uz"
-                            ? urgencyConfig[result.urgency].labelUz
-                            : language === "ru"
-                              ? urgencyConfig[result.urgency].labelRu
-                              : urgencyConfig[result.urgency].labelEn}
+                          {t(`symptomChecker.urgency.${result.urgency}`)}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
@@ -637,11 +577,7 @@ export default function SymptomCheckerPage() {
                       <div className="flex items-center gap-2 mb-5">
                         <Stethoscope className="w-5 h-5 text-primary" />
                         <h3 className="font-semibold">
-                          {language === "uz"
-                            ? "Mumkin bo'lgan tashxislar"
-                            : language === "ru"
-                              ? "Возможные диагнозы"
-                              : "Possible Conditions"}
+                          {t("symptomChecker.possibleConditions")}
                         </h3>
                       </div>
                       <div className="space-y-4">
@@ -675,11 +611,7 @@ export default function SymptomCheckerPage() {
                         <div className="flex items-center gap-2 mb-4">
                           <Pill className="w-5 h-5 text-primary" />
                           <h3 className="font-semibold">
-                            {language === "uz"
-                              ? "Tavsiya etilgan dorilar"
-                              : language === "ru"
-                                ? "Рекомендуемые лекарства"
-                                : "Suggested Medicines"}
+                          {t("symptomChecker.suggestedMedicines")}
                           </h3>
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -707,11 +639,7 @@ export default function SymptomCheckerPage() {
                     >
                       <a href="/consultation">
                         <Stethoscope className="w-5 h-5 mr-2" />
-                        {language === "uz"
-                          ? "Shifokor bilan maslahatlashish"
-                          : language === "ru"
-                            ? "Проконсультироваться с врачом"
-                            : "Consult a Doctor"}
+                        {t("consultation.bookAppointment")}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </a>
                     </Button>
@@ -723,11 +651,7 @@ export default function SymptomCheckerPage() {
                     >
                       <a href="/medicines">
                         <Search className="w-5 h-5 mr-2" />
-                        {language === "uz"
-                          ? "Dorilarni topish"
-                          : language === "ru"
-                            ? "Найти лекарства"
-                            : "Find Medicines"}
+                        {t("common.search")}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </a>
                     </Button>
@@ -754,18 +678,10 @@ export default function SymptomCheckerPage() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-sm mb-1">
-                    {language === "uz"
-                      ? "Muhim eslatma"
-                      : language === "ru"
-                        ? "Важное примечание"
-                        : "Important Disclaimer"}
+                    {t("symptomChecker.importantNote")}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {language === "uz"
-                      ? "Ushbu AI simptom tekshiruvchisi faqat ma'lumot olish uchun mo'ljallangan va professional tibbiy maslahat, tashxis yoki davolanish o'rnini bosa olmaydi. Agar shoshilinch tibbiy yordam kerak bo'lsa, darhol tez yordam xizmatiga murojaat qiling (103)."
-                      : language === "ru"
-                        ? "Этот AI-проверщик симптомов предназначен только для информационных целей и не заменяет профессиональную медицинскую консультацию, диагностику или лечение. При необходимости неотложной медицинской помощи немедленно обратитесь в службу скорой помощи (103)."
-                        : "This AI symptom checker is for informational purposes only and does not replace professional medical advice, diagnosis, or treatment. If you need emergency medical assistance, call emergency services immediately (103)."}
+                    {t("symptomChecker.disclaimer")}
                   </p>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/i18n/LanguageProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -87,18 +88,31 @@ import type { Order } from "@/types";
 
 type AdminTab = "dashboard" | "medicines" | "doctors" | "pharmacies" | "categories" | "users" | "appointments" | "orders" | "discounts" | "coupons";
 
-const sidebarItems: { id: AdminTab; label: string; icon: React.ElementType }[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "medicines", label: "Medicines", icon: Pill },
-  { id: "doctors", label: "Doctors", icon: Stethoscope },
-  { id: "pharmacies", label: "Pharmacies", icon: Building2 },
-  { id: "categories", label: "Categories", icon: Grid3X3 },
-  { id: "users", label: "Users", icon: Users },
-  { id: "appointments", label: "Appointments", icon: CalendarClock },
-  { id: "orders", label: "Orders", icon: ShoppingBag },
-  { id: "discounts", label: "Discounts", icon: Percent },
-  { id: "coupons", label: "Coupons", icon: Ticket },
+const sidebarItems: { id: AdminTab; icon: React.ElementType }[] = [
+  { id: "dashboard", icon: LayoutDashboard },
+  { id: "medicines", icon: Pill },
+  { id: "doctors", icon: Stethoscope },
+  { id: "pharmacies", icon: Building2 },
+  { id: "categories", icon: Grid3X3 },
+  { id: "users", icon: Users },
+  { id: "appointments", icon: CalendarClock },
+  { id: "orders", icon: ShoppingBag },
+  { id: "discounts", icon: Percent },
+  { id: "coupons", icon: Ticket },
 ];
+
+const tabLabelKeys: Record<AdminTab, string> = {
+  dashboard: "dashboard.admin.dashboard",
+  medicines: "dashboard.admin.medicines",
+  doctors: "dashboard.admin.doctors",
+  pharmacies: "dashboard.admin.pharmacies",
+  categories: "dashboard.admin.categories",
+  users: "dashboard.admin.users",
+  appointments: "dashboard.admin.appointments",
+  orders: "dashboard.admin.orders",
+  discounts: "dashboard.admin.discounts",
+  coupons: "dashboard.admin.coupons",
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -167,7 +181,7 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, color }: {
               <span className={trend === "up" ? "text-emerald-500" : "text-red-500"}>
                 {trendValue}
               </span>
-              <span className="text-muted-foreground">vs last month</span>
+              <span className="text-muted-foreground">{t("dashboard.admin.dashboard")}</span>
             </div>
           )}
         </CardContent>
@@ -193,6 +207,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 function DashboardTab() {
+  const { t } = useLanguage();
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const revenueData = dashboardStats.monthlyRevenue.map((val, i) => ({
@@ -212,20 +227,20 @@ function DashboardTab() {
     <div className="space-y-6">
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.admin.dashboard")}</h1>
           <p className="text-muted-foreground">
-            Welcome back, Admin. Here&apos;s what&apos;s happening today.
+            {t("dashboard.admin.dashboard")}
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>Last updated: {formatDate(new Date().toISOString())}</span>
+          <span>{t("common.loading")}: {formatDate(new Date().toISOString())}</span>
         </div>
       </motion.div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
-          title="Total Revenue"
+          title={t("dashboard.admin.totalRevenue")}
           value={formatPrice(dashboardStats.totalRevenue)}
           icon={DollarSign}
           trend="up"
@@ -233,7 +248,7 @@ function DashboardTab() {
           color="bg-emerald-500"
         />
         <StatCard
-          title="Total Orders"
+          title={t("dashboard.admin.totalOrders")}
           value={dashboardStats.totalOrders.toLocaleString()}
           icon={ShoppingCart}
           trend="up"
@@ -241,7 +256,7 @@ function DashboardTab() {
           color="bg-blue-500"
         />
         <StatCard
-          title="Total Customers"
+          title={t("dashboard.admin.totalCustomers")}
           value={dashboardStats.totalCustomers.toLocaleString()}
           icon={Users}
           trend="up"
@@ -249,7 +264,7 @@ function DashboardTab() {
           color="bg-violet-500"
         />
         <StatCard
-          title="Total Doctors"
+          title={t("dashboard.admin.totalDoctors")}
           value={dashboardStats.totalDoctors.toString()}
           icon={Stethoscope}
           trend="up"
@@ -257,7 +272,7 @@ function DashboardTab() {
           color="bg-amber-500"
         />
         <StatCard
-          title="Total Medicines"
+          title={t("dashboard.admin.totalMedicines")}
           value={dashboardStats.totalMedicines.toLocaleString()}
           icon={Pill}
           trend="up"
@@ -265,7 +280,7 @@ function DashboardTab() {
           color="bg-rose-500"
         />
         <StatCard
-          title="Total Pharmacies"
+          title={t("dashboard.admin.totalPharmacies")}
           value={dashboardStats.totalPharmacies.toString()}
           icon={Store}
           trend="up"
@@ -279,8 +294,8 @@ function DashboardTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Monthly Revenue</CardTitle>
-                <CardDescription>Revenue trend over the past year</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.admin.totalRevenue")}</CardTitle>
+                <CardDescription>{t("dashboard.admin.totalRevenue")}</CardDescription>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
                 <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -306,8 +321,8 @@ function DashboardTab() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-0">
               <div>
-                <CardTitle className="text-lg">Monthly Orders</CardTitle>
-                <CardDescription>Orders placed per month</CardDescription>
+                <CardTitle className="text-lg">{t("dashboard.admin.totalOrders")}</CardTitle>
+                <CardDescription>{t("dashboard.admin.totalOrders")}</CardDescription>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
                 <ShoppingCart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -334,8 +349,8 @@ function DashboardTab() {
         <motion.div variants={itemVariants}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Popular Medicines</CardTitle>
-              <CardDescription>Most ordered medicines this month</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.admin.medicines")}</CardTitle>
+              <CardDescription>{t("dashboard.admin.medicines")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
@@ -356,8 +371,8 @@ function DashboardTab() {
         <motion.div variants={itemVariants}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Revenue by Pharmacy</CardTitle>
-              <CardDescription>Revenue distribution across pharmacies</CardDescription>
+              <CardTitle className="text-lg">{t("dashboard.admin.pharmacies")}</CardTitle>
+              <CardDescription>{t("dashboard.admin.pharmacies")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full flex items-center justify-center">
@@ -399,6 +414,7 @@ function DashboardTab() {
 }
 
 function MedicinesTab() {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const filtered = medicines.filter((m) =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -410,12 +426,12 @@ function MedicinesTab() {
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Medicines</h2>
-          <p className="text-muted-foreground">Manage the medicine catalog</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.medicines")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.medicines")}</p>
         </div>
         <Button className="gap-1.5 shrink-0">
           <Plus className="h-4 w-4" />
-          Add Medicine
+          {t("dashboard.admin.add")} {t("dashboard.admin.medicines")}
         </Button>
       </motion.div>
 
@@ -423,7 +439,7 @@ function MedicinesTab() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search medicines by name, manufacturer or category..."
+            placeholder={t("common.search")}
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -437,13 +453,13 @@ function MedicinesTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Name</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Manufacturer</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Category</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Price</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Stock</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Status</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Actions</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.pharmacy")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("medicines.manufacturer")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.categories")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.price")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("dashboard.pharmacy.lowStock")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("pharmacies.open")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("common.edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -474,12 +490,12 @@ function MedicinesTab() {
                       {med.isAvailable ? (
                         <Badge variant="success" className="gap-1">
                           <CheckCircle2 className="h-3 w-3" />
-                          Available
+                          {t("medicines.inStock")}
                         </Badge>
                       ) : (
                         <Badge variant="destructive" className="gap-1">
                           <XCircle className="h-3 w-3" />
-                          Unavailable
+                          {t("medicines.outOfStock")}
                         </Badge>
                       )}
                     </td>
@@ -508,16 +524,17 @@ function MedicinesTab() {
 }
 
 function DoctorsTab() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Doctors</h2>
-          <p className="text-muted-foreground">Manage registered doctors</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.doctors")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.doctors")}</p>
         </div>
         <Button className="gap-1.5 shrink-0">
           <Plus className="h-4 w-4" />
-          Add Doctor
+          {t("dashboard.admin.add")} {t("dashboard.admin.doctors")}
         </Button>
       </motion.div>
 
@@ -527,13 +544,13 @@ function DoctorsTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Name</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Specialty</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Experience</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Rating</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Fee</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Available</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Actions</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.pharmacy")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.doctors")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("dashboard.admin.doctors")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("pharmacies.rating")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("consultation.consultationFee")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("medicines.inStock")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("common.edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -563,12 +580,12 @@ function DoctorsTab() {
                       {doc.isAvailableToday ? (
                         <Badge variant="success" className="gap-1">
                           <CheckCircle2 className="h-3 w-3" />
-                          Available
+                          {t("medicines.inStock")}
                         </Badge>
                       ) : (
                         <Badge variant="secondary" className="gap-1">
                           <XCircle className="h-3 w-3" />
-                          Busy
+                          {t("medicines.outOfStock")}
                         </Badge>
                       )}
                     </td>
@@ -594,16 +611,17 @@ function DoctorsTab() {
 }
 
 function PharmaciesTab() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Pharmacies</h2>
-          <p className="text-muted-foreground">Manage partner pharmacies</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.pharmacies")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.pharmacies")}</p>
         </div>
         <Button className="gap-1.5 shrink-0">
           <Plus className="h-4 w-4" />
-          Add Pharmacy
+          {t("dashboard.admin.add")} {t("dashboard.admin.pharmacies")}
         </Button>
       </motion.div>
 
@@ -613,12 +631,12 @@ function PharmaciesTab() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Name</th>
-                  <th className="text-left font-medium text-muted-foreground px-4 py-3">Address</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Rating</th>
-                  <th className="text-center font-medium text-muted-foreground px-4 py-3">Status</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Delivery Fee</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-3">Actions</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("medicines.priceComparison.pharmacy")}</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-3">{t("pharmacies.address")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("pharmacies.rating")}</th>
+                  <th className="text-center font-medium text-muted-foreground px-4 py-3">{t("pharmacies.open")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("pharmacies.deliveryFee")}</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-3">{t("common.edit")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -651,18 +669,18 @@ function PharmaciesTab() {
                       {ph.isOpen ? (
                         <Badge variant="success" className="gap-1">
                           <CheckCircle2 className="h-3 w-3" />
-                          Open
+                          {t("pharmacies.open")}
                         </Badge>
                       ) : (
                         <Badge variant="secondary" className="gap-1">
                           <XCircle className="h-3 w-3" />
-                          Closed
+                          {t("pharmacies.closed")}
                         </Badge>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold">
                       {ph.freeDelivery ? (
-                        <span className="text-emerald-600">Free</span>
+                        <span className="text-emerald-600">{t("pharmacies.freeDelivery")}</span>
                       ) : (
                         formatPrice(ph.deliveryFee)
                       )}
@@ -689,6 +707,7 @@ function PharmaciesTab() {
 }
 
 function CategoriesTab() {
+  const { t } = useLanguage();
   const iconMap: Record<string, React.ElementType> = {
     Activity,
     Shield: ShieldCheck,
@@ -703,12 +722,12 @@ function CategoriesTab() {
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Categories</h2>
-          <p className="text-muted-foreground">Manage medicine categories</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.categories")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.categories")}</p>
         </div>
         <Button className="gap-1.5 shrink-0">
           <Plus className="h-4 w-4" />
-          Add Category
+          {t("dashboard.admin.add")} {t("dashboard.admin.categories")}
         </Button>
       </motion.div>
 
@@ -734,7 +753,7 @@ function CategoriesTab() {
                 <div className="mt-3 flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
                     <Package className="mr-1 h-3 w-3" />
-                    {cat.medicineCount} medicines
+                    {cat.medicineCount} {t("dashboard.admin.medicines")}
                   </Badge>
                 </div>
               </CardContent>
@@ -747,20 +766,21 @@ function CategoriesTab() {
 }
 
 function UsersTab() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Users</h2>
-          <p className="text-muted-foreground">Manage platform users</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.users")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.users")}</p>
         </div>
       </div>
       <Card>
         <CardContent className="p-12 text-center">
           <Users className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-semibold">User Management</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("dashboard.admin.users")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Full user management interface coming soon.
+            {t("dashboard.admin.comingSoon")}
           </p>
         </CardContent>
       </Card>
@@ -769,20 +789,21 @@ function UsersTab() {
 }
 
 function AppointmentsTab() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Appointments</h2>
-          <p className="text-muted-foreground">Manage patient appointments</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.appointments")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.appointments")}</p>
         </div>
       </div>
       <Card>
         <CardContent className="p-12 text-center">
           <CalendarClock className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-semibold">Appointment Management</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("dashboard.admin.appointments")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Full appointment management interface coming soon.
+            {t("dashboard.admin.comingSoon")}
           </p>
         </CardContent>
       </Card>
@@ -791,6 +812,7 @@ function AppointmentsTab() {
 }
 
 function OrdersTabSection() {
+  const { t } = useLanguage();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -802,23 +824,23 @@ function OrdersTabSection() {
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Orders</h2>
-          <p className="text-muted-foreground">Track and manage all orders</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.orders")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.orders")}</p>
         </div>
         <div className="w-full sm:w-48">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={t("common.search")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Orders</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="picked-up">Picked Up</SelectItem>
-              <SelectItem value="in-transit">In Transit</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="all">{t("dashboard.admin.orders")}</SelectItem>
+              <SelectItem value="pending">{t("delivery.status.pending")}</SelectItem>
+              <SelectItem value="confirmed">{t("delivery.status.confirmed")}</SelectItem>
+              <SelectItem value="preparing">{t("delivery.status.preparing")}</SelectItem>
+              <SelectItem value="picked-up">{t("delivery.status.pickedUp")}</SelectItem>
+              <SelectItem value="in-transit">{t("delivery.status.inTransit")}</SelectItem>
+              <SelectItem value="delivered">{t("delivery.status.delivered")}</SelectItem>
+              <SelectItem value="cancelled">{t("delivery.status.cancelled")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -888,7 +910,7 @@ function OrdersTabSection() {
                     <div>
                       <h4 className="mb-2 text-sm font-semibold flex items-center gap-2">
                         <Activity className="h-4 w-4" />
-                        Tracking Timeline
+                        {t("delivery.orderDetails")}
                       </h4>
                       <div className="relative space-y-0 pl-6">
                         <div className="absolute left-[7px] top-1 h-full w-0.5 bg-border" />
@@ -916,14 +938,14 @@ function OrdersTabSection() {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <span className="text-xs text-muted-foreground">Delivery Address</span>
+                        <span className="text-xs text-muted-foreground">{t("delivery.deliveryAddress")}</span>
                         <p className="text-sm font-medium">{order.deliveryAddress.street}</p>
                         <p className="text-xs text-muted-foreground">
                           {order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.zipCode}
                         </p>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground">Payment</span>
+                        <span className="text-xs text-muted-foreground">{t("cart.total")}</span>
                         <p className="text-sm font-medium">{order.paymentMethod}</p>
                         <StatusBadge status={order.paymentStatus} />
                       </div>
@@ -940,24 +962,25 @@ function OrdersTabSection() {
 }
 
 function DiscountsTab() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Discounts</h2>
-          <p className="text-muted-foreground">Manage medicine discounts</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.discounts")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.discounts")}</p>
         </div>
         <Button className="gap-1.5">
           <Plus className="h-4 w-4" />
-          Create Discount
+          {t("dashboard.admin.add")}
         </Button>
       </div>
       <Card>
         <CardContent className="p-12 text-center">
           <Percent className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("dashboard.admin.comingSoon")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Discount management system is under development.
+            {t("dashboard.admin.comingSoon")}
           </p>
         </CardContent>
       </Card>
@@ -966,24 +989,25 @@ function DiscountsTab() {
 }
 
 function CouponsTab() {
+  const { t } = useLanguage();
   return (
     <motion.div variants={itemVariants} className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Coupons</h2>
-          <p className="text-muted-foreground">Manage promotional coupons</p>
+          <h2 className="text-2xl font-bold">{t("dashboard.admin.coupons")}</h2>
+          <p className="text-muted-foreground">{t("dashboard.admin.coupons")}</p>
         </div>
         <Button className="gap-1.5">
           <Plus className="h-4 w-4" />
-          Create Coupon
+          {t("dashboard.admin.add")}
         </Button>
       </div>
       <Card>
         <CardContent className="p-12 text-center">
           <Ticket className="mx-auto h-12 w-12 text-muted-foreground/40" />
-          <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
+          <h3 className="mt-4 text-lg font-semibold">{t("dashboard.admin.comingSoon")}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Coupon management system is under development.
+            {t("dashboard.admin.comingSoon")}
           </p>
         </CardContent>
       </Card>
@@ -1004,19 +1028,6 @@ const tabComponents: Record<AdminTab, React.ElementType> = {
   coupons: CouponsTab,
 };
 
-const tabLabels: Record<AdminTab, string> = {
-  dashboard: "Dashboard",
-  medicines: "Medicines",
-  doctors: "Doctors",
-  pharmacies: "Pharmacies",
-  categories: "Categories",
-  users: "Users",
-  appointments: "Appointments",
-  orders: "Orders",
-  discounts: "Discounts",
-  coupons: "Coupons",
-};
-
 function TabContent({ tab }: { tab: AdminTab }) {
   const Component = tabComponents[tab];
   return (
@@ -1035,6 +1046,7 @@ function TabContent({ tab }: { tab: AdminTab }) {
 }
 
 export default function AdminDashboardPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -1055,7 +1067,7 @@ export default function AdminDashboardPage() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 text-white text-xs font-bold shadow">
             A
           </div>
-          <span className="font-semibold">Admin Panel</span>
+          <span className="font-semibold">{t("dashboard.admin.dashboard")}</span>
         </div>
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">AD</AvatarFallback>
@@ -1087,8 +1099,8 @@ export default function AdminDashboardPage() {
                 A
               </div>
               <div>
-                <p className="font-semibold leading-tight">Admin Panel</p>
-                <p className="text-xs text-muted-foreground">Super Admin</p>
+                <p className="font-semibold leading-tight">{t("dashboard.admin.dashboard")}</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.admin.dashboard")}</p>
               </div>
             </div>
 
@@ -1108,7 +1120,7 @@ export default function AdminDashboardPage() {
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
-                      <span>{item.label}</span>
+                      <span>{t(tabLabelKeys[item.id])}</span>
                       {activeTab === item.id && (
                         <ChevronRight className="ml-auto h-4 w-4 shrink-0" />
                       )}
@@ -1121,7 +1133,7 @@ export default function AdminDashboardPage() {
             <div className="border-t p-4">
               <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                {t("nav.signOut")}
               </Button>
             </div>
           </div>
@@ -1156,7 +1168,7 @@ export default function AdminDashboardPage() {
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 <span className="text-[10px] font-medium truncate w-full text-center">
-                  {tabLabels[item.id]}
+                  {t(tabLabelKeys[item.id])}
                 </span>
                 {activeTab === item.id && (
                   <motion.div
@@ -1172,7 +1184,7 @@ export default function AdminDashboardPage() {
             className="flex flex-col items-center justify-center gap-1 py-2 px-3 text-muted-foreground min-w-0"
           >
             <MoreHorizontal className="h-5 w-5" />
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-medium">{t("common.viewAll")}</span>
           </button>
         </div>
       </nav>
