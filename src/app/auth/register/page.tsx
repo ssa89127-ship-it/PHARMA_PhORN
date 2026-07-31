@@ -115,21 +115,21 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label={t("auth.register.fullName")}
-              placeholder="John Doe"
+              placeholder={t("auth.register.placeholders.fullName")}
               icon={<User className="w-4 h-4" />}
               required
             />
             <Input
               label={t("auth.register.email")}
               type="email"
-              placeholder="john@example.com"
+              placeholder={t("auth.register.placeholders.email")}
               icon={<Mail className="w-4 h-4" />}
               required
             />
             <Input
               label={t("auth.register.phone")}
               type="tel"
-              placeholder="+1 (555) 000-0000"
+              placeholder={t("auth.register.placeholders.phone")}
               icon={<Phone className="w-4 h-4" />}
               required
             />
@@ -137,7 +137,7 @@ export default function RegisterPage() {
               <Input
                 label={t("auth.register.password")}
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password"
+                placeholder={t("auth.register.placeholders.password")}
                 icon={<Lock className="w-4 h-4" />}
                 rightIcon={
                   <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password visibility">
@@ -165,7 +165,7 @@ export default function RegisterPage() {
             <Input
               label={t("auth.register.confirmPassword")}
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Repeat your password"
+              placeholder={t("auth.register.placeholders.confirmPassword")}
               icon={<Lock className="w-4 h-4" />}
               rightIcon={
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label="Toggle confirm password visibility">

@@ -235,6 +235,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       apply: "Qo'llash",
       placeOrder: "Buyurtma berish",
       orderPlaced: "Buyurtma qabul qilindi!",
+      promoPlaceholder: "Kodni kiriting",
     },
     auth: {
       login: {
@@ -248,6 +249,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         noAccount: "Hisobingiz yo'qmi?",
         signUp: "Ro'yxatdan o'tish",
         orContinueWith: "yoki davom eting",
+        placeholders: {
+          email: "name@example.com",
+          password: "Parolingizni kiriting",
+        },
       },
       register: {
         title: "Hisob yaratish",
@@ -269,6 +274,13 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         medium: "O'rtacha",
         strong: "Kuchli",
         veryStrong: "Juda kuchli",
+        placeholders: {
+          fullName: "Ismingizni kiriting",
+          email: "john@example.com",
+          phone: "+998 (90) 000-00-00",
+          password: "Kuchli parol yarating",
+          confirmPassword: "Parolni takrorlang",
+        },
       },
     },
     dashboard: {
@@ -383,6 +395,14 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       downloaded: "Yuklab olindi",
       total: "Jami",
       currency: "so'm",
+    },
+    chatbot: {
+      title: "AI Yordamchi",
+      placeholder: "Dorilar, simptomlar, narxlar...",
+      send: "Yuborish",
+      welcome: "Assalomu alaykum! PharmaHub AI yordamchisiga xush kelibsiz. Dori nomi, simptom yoki kasallik nomini yozing — men sizga real dorixonalardagi dorilar va narxlarni topib beraman.",
+      disclaimer: "Bu AI yordamchi tibbiy maslahat o'rnini bosmaydi. Shifokor bilan maslahatlashing.",
+      actions: ["Dori qidirish", "Bosh og'rig'i", "Isitma", "Vitaminlar"],
     },
     scanner: {
       badge: "AI bilan skanerlash",      title: "Dori skaneri",
@@ -701,6 +721,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       apply: "Применить",
       placeOrder: "Заказать",
       orderPlaced: "Заказ принят!",
+      promoPlaceholder: "Введите код",
     },
     auth: {
       login: {
@@ -712,8 +733,12 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         forgotPassword: "Забыли пароль?",
         signIn: "Войти",
         noAccount: "Нет аккаунта?",
-        signUp: "Регистрация",
-        orContinueWith: "или продолжить через",
+        signUp: "Зарегистрироваться",
+        orContinueWith: "или продолжите с",
+        placeholders: {
+          email: "name@example.com",
+          password: "Введите пароль",
+        },
       },
       register: {
         title: "Создать аккаунт",
@@ -735,6 +760,13 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         medium: "Средний",
         strong: "Сильный",
         veryStrong: "Очень сильный",
+        placeholders: {
+          fullName: "Введите ваше имя",
+          email: "john@example.com",
+          phone: "+998 (90) 000-00-00",
+          password: "Создайте надёжный пароль",
+          confirmPassword: "Повторите пароль",
+        },
       },
     },
     dashboard: {
@@ -849,6 +881,14 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       downloaded: "Скачано",
       total: "Итого",
       currency: "сум",
+    },
+    chatbot: {
+      title: "AI-помощник",
+      placeholder: "Лекарства, симптомы, цены...",
+      send: "Отправить",
+      welcome: "Здравствуйте! Добро пожаловать в AI-помощник PharmaHub. Напишите название лекарства, симптом или болезнь — я найду реальные препараты и цены в аптеках.",
+      disclaimer: "Этот AI-помощник не заменяет медицинскую консультацию. Проконсультируйтесь с врачом.",
+      actions: ["Найти лекарство", "Головная боль", "Температура", "Витамины"],
     },
     scanner: {
       badge: "AI сканирование",
@@ -1168,6 +1208,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       apply: "Apply",
       placeOrder: "Place Order",
       orderPlaced: "Order placed successfully!",
+      promoPlaceholder: "Enter code",
     },
     auth: {
       login: {
@@ -1181,6 +1222,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         noAccount: "Don't have an account?",
         signUp: "Sign Up",
         orContinueWith: "or continue with",
+        placeholders: {
+          email: "name@example.com",
+          password: "Enter your password",
+        },
       },
       register: {
         title: "Create Account",
@@ -1202,6 +1247,13 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
         medium: "Medium",
         strong: "Strong",
         veryStrong: "Very Strong",
+        placeholders: {
+          fullName: "Enter your full name",
+          email: "john@example.com",
+          phone: "+998 (90) 000-00-00",
+          password: "Create a strong password",
+          confirmPassword: "Repeat your password",
+        },
       },
     },
     dashboard: {
@@ -1316,6 +1368,14 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       downloaded: "Downloaded",
       total: "Total",
       currency: "so'm",
+    },
+    chatbot: {
+      title: "AI Assistant",
+      placeholder: "Medicines, symptoms, prices...",
+      send: "Send",
+      welcome: "Hello! Welcome to the PharmaHub AI assistant. Type a medicine name, symptom, or condition — I'll find real medicines and pharmacy prices for you.",
+      disclaimer: "This AI assistant does not replace medical advice. Please consult a doctor.",
+      actions: ["Find medicine", "Headache", "Fever", "Vitamins"],
     },
     scanner: {
       badge: "AI-Powered Scanning",

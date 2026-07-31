@@ -437,7 +437,7 @@ export default function CartPage() {
                     </h3>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Enter code"
+                        placeholder={t("cart.promoPlaceholder")}
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value)}
                         className="flex-1"

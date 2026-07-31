@@ -120,7 +120,7 @@ export default function LoginPage() {
                   <Input
                   label={t("auth.login.email")}
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder={t("auth.login.placeholders.email")}
                   icon={<Mail className="w-4 h-4" />}
                   error={errors.email?.message}
                   {...register("email")}
@@ -136,7 +136,7 @@ export default function LoginPage() {
                   <Input
                   label={t("auth.login.password")}
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t("auth.login.placeholders.password")}
                   icon={<Lock className="w-4 h-4" />}
                   error={errors.password?.message}
                   {...register("password")}
