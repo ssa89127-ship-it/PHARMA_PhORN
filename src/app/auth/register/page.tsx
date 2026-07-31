@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Pill, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
+import { Pill, Mail, Lock, User, Phone, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -139,6 +139,11 @@ export default function RegisterPage() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a strong password"
                 icon={<Lock className="w-4 h-4" />}
+                rightIcon={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password visibility">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -162,6 +167,11 @@ export default function RegisterPage() {
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Repeat your password"
               icon={<Lock className="w-4 h-4" />}
+              rightIcon={
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label="Toggle confirm password visibility">
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
               required
             />
 

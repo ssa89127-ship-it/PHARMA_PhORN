@@ -6,7 +6,7 @@ import { Language, translations } from "./translations";
 type LanguageContextType = {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (path: string) => string;
+  t: (path: string, params?: Record<string, string | number>) => string;
   tArray: (path: string) => any[];
   formatCurrency: (amount: number) => string;
 };
@@ -39,9 +39,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return current;
   };
 
-  const t = (path: string): string => {
+  const t = (path: string, params?: Record<string, string | number>): string => {
     const result = getNestedValue(translations[language], path);
-    return typeof result === "string" ? result : path;
+    if (typeof result !== "string") return path;
+    if (!params) return result;
+    return result.replace(/\{(\w+)\}/g, (match, key) =>
+      key in params ? String(params[key]) : match
+    );
   };
 
   const tArray = (path: string): any[] => {

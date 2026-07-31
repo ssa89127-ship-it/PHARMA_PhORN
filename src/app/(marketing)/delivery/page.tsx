@@ -163,7 +163,7 @@ function ActiveOrderTracking({ order }: { order: Order }) {
             {t("delivery.active")} <span className="text-gradient">{t("delivery.delivery")}</span>
           </h2>
           <p className="text-sm text-muted-foreground">
-            {t("delivery.orderDetails")} #{order.id} &middot; {order.pharmacyName}
+            {t("delivery.orderNumber", { id: order.id })} &middot; {order.pharmacyName}
           </p>
         </div>
       </div>
@@ -375,7 +375,7 @@ function OrderHistory({
             {t("delivery.order")} <span className="text-gradient">{t("delivery.history")}</span>
           </h2>
           <p className="text-sm text-muted-foreground">
-            {pastOrders.length} {t("delivery.orderHistory")}
+            {t("delivery.ordersPlaced", { count: pastOrders.length })}
           </p>
         </div>
       </div>
@@ -496,7 +496,7 @@ function OrderDetailModal({
         >
           <div className="sticky top-0 bg-background z-10 flex items-center justify-between p-5 border-b border-border/50">
             <div>
-              <h3 className="font-semibold">{t("delivery.orderDetails")} #{order.id}</h3>
+              <h3 className="font-semibold">{t("delivery.orderNumberShort", { id: order.id })}</h3>
               <p className="text-xs text-muted-foreground">{order.pharmacyName}</p>
             </div>
             <button

@@ -6,7 +6,7 @@ export const languages: { code: Language; name: string; nativeName: string }[] =
   { code: "en", name: "English", nativeName: "English" },
 ];
 
-type TranslationValue = string | { [key: string]: TranslationValue } | any[];
+type TranslationValue = string | { [key: string]: TranslationValue } | TranslationValue[];
 
 export const translations: Record<Language, Record<string, TranslationValue>> = {
   uz: {
@@ -182,6 +182,9 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       title: "Yetkazib berish",
       activeOrder: "Faol buyurtma",
       orderHistory: "Buyurtmalar tarixi",
+      orderNumber: "Buyurtma #{id}",
+      orderNumberShort: "Buyurtma #{id}",
+      ordersPlaced: "{count} ta buyurtma berilgan",
       estimatedArrival: "Taxminiy yetib kelish",
       status: {
         pending: "Kutilmoqda",
@@ -624,6 +627,9 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       title: "Доставка",
       activeOrder: "Активный заказ",
       orderHistory: "История заказов",
+      orderNumber: "Заказ #{id}",
+      orderNumberShort: "Заказ #{id}",
+      ordersPlaced: "Размещено заказов: {count}",
       estimatedArrival: "Ожидаемое прибытие",
       status: {
         pending: "Ожидается",
@@ -1066,6 +1072,9 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       title: "Delivery",
       activeOrder: "Active Order",
       orderHistory: "Order History",
+      orderNumber: "Order #{id}",
+      orderNumberShort: "Order #{id}",
+      ordersPlaced: "{count} orders placed",
       estimatedArrival: "Estimated Arrival",
       status: {
         pending: "Pending",
