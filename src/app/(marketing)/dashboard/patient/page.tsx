@@ -62,6 +62,7 @@ import {
   appointments,
   medicalRecords,
   medicines,
+  pharmacies,
   savedAddresses,
   paymentMethods,
   loyaltyPoints,
@@ -80,6 +81,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { PrescriptionsSection } from "@/components/shared/prescriptions-section";
+import NearestPharmacy from "@/components/shared/nearest-pharmacy";
 import type { Order, Notification } from "@/types";
 
 type Tab = "overview" | "orders" | "appointments" | "saved-medicines" | "notifications" | "profile" | "addresses" | "payment-methods" | "medical-records" | "invoices" | "prescriptions";
@@ -359,6 +361,36 @@ function OverviewTab() {
           </Card>
         </motion.div>
       </div>
+
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">{t("pharmacies.nearest") || "Eng yaqin dorixonalar"}</CardTitle>
+              <CardDescription>{t("pharmacies.nearestDescription") || "Sizga eng yaqin dorixonalar"}</CardDescription>
+            </div>
+            <MapPin className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <NearestPharmacy
+              pharmacies={pharmacies.slice(0, 20).map(p => ({
+                id: p.id,
+                name: p.name,
+                address: p.address,
+                city: p.city,
+                phone: p.phone,
+                lat: p.lat,
+                lng: p.lng,
+                isOpen: p.isOpen,
+                is24hours: p.is24hours,
+                deliveryTime: p.deliveryTime,
+              }))}
+              maxShow={5}
+              showMap={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <motion.div variants={itemVariants}>
         <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border-amber-200/50 dark:border-amber-800/30">
@@ -1326,25 +1358,25 @@ export default function PatientDashboardPage() {
         {/* Sidebar - Desktop fixed, Mobile overlay */}
         <aside
           className={cn(
-            "fixed lg:sticky top-0 lg:top-0 z-40 h-screen w-64 shrink-0 border-r bg-card/80 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0",
+            "fixed lg:sticky top-0 lg:top-0 z-40 h-screen w-[220px] shrink-0 border-r bg-card/80 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0",
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           <div className="flex h-full flex-col">
             {/* Sidebar Header */}
-            <div className="hidden lg:flex items-center gap-3 border-b px-6 py-5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white font-bold shadow-lg">
+            <div className="hidden lg:flex items-center gap-2.5 border-b px-4 py-4">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white font-bold shadow-lg text-sm">
                 P
               </div>
               <div>
-                <p className="font-semibold leading-tight">{t("nav.dashboard")}</p>
-                <p className="text-xs text-muted-foreground">{t("dashboard.patient.welcome")}, John</p>
+                <p className="font-semibold text-sm leading-tight">{t("nav.dashboard")}</p>
+                <p className="text-[11px] text-muted-foreground">{t("dashboard.patient.welcome")}, John</p>
               </div>
             </div>
 
             {/* Navigation */}
-            <ScrollArea className="flex-1 px-3 py-4">
-              <nav className="space-y-1">
+            <ScrollArea className="flex-1 px-2 py-3">
+              <nav className="space-y-0.5">
                 {sidebarItems.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -1352,17 +1384,14 @@ export default function PatientDashboardPage() {
                       key={item.id}
                       onClick={() => setActiveTab(item.id)}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                        "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-200",
                         activeTab === item.id
                           ? "bg-primary text-primary-foreground shadow-sm"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
-                      <span>{t(tabLabelKeys[item.id])}</span>
-                      {activeTab === item.id && (
-                        <ChevronRight className="ml-auto h-4 w-4 shrink-0" />
-                      )}
+                      <span className="truncate">{t(tabLabelKeys[item.id])}</span>
                     </button>
                   );
                 })}
@@ -1370,8 +1399,8 @@ export default function PatientDashboardPage() {
             </ScrollArea>
 
             {/* Sidebar Footer */}
-            <div className="border-t p-4">
-              <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground">
+            <div className="border-t p-3">
+              <Button variant="ghost" className="w-full justify-start gap-2.5 text-muted-foreground text-[13px]">
                 <LogOut className="h-4 w-4" />
                 {t("nav.signOut")}
               </Button>
@@ -1380,8 +1409,8 @@ export default function PatientDashboardPage() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 min-h-screen">
-          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="flex-1 min-h-screen overflow-x-hidden">
+          <div className="px-4 py-6 sm:px-6 lg:px-8 lg:py-6">
             <motion.div
               key={activeTab}
               variants={containerVariants}

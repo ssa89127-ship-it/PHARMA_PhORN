@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Package,
   Truck,
@@ -29,8 +30,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice, formatDateTime, formatTime, formatDate, getStatusColor } from "@/lib/utils";
-import { orders, medicines } from "@/lib/data";
+import { orders, medicines, pharmacies } from "@/lib/data";
 import type { Order } from "@/types";
+
+const DeliveryMap = dynamic(() => import("@/components/shared/delivery-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-muted/30 rounded-xl flex items-center justify-center min-h-[300px]">
+      <div className="text-center">
+        <Map className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2 animate-pulse" />
+        <p className="text-xs text-muted-foreground">Xarita yuklanmoqda...</p>
+      </div>
+    </div>
+  ),
+});
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -80,6 +93,8 @@ export default function DeliveryPage() {
               onClose={() => setSelectedOrderId(null)}
             />
           )}
+
+          <DeliveryCoverageMap />
 
           <FavoriteMedicines medicines={favoriteMedicines} />
         </div>
@@ -132,6 +147,75 @@ function HeroSection({ hasActiveOrder }: { hasActiveOrder: boolean }) {
   );
 }
 
+function DeliveryCoverageMap() {
+  const { t } = useLanguage();
+  const mapPharmacies = pharmacies.slice(0, 30).map((p) => ({
+    id: p.id,
+    name: p.name,
+    address: p.address,
+    city: p.city,
+    phone: p.phone,
+    lat: p.lat,
+    lng: p.lng,
+    isOpen: p.isOpen,
+    deliveryTime: p.deliveryTime,
+  }));
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      initial="hidden"
+      animate="visible"
+      className="mb-12"
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+          <Map className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div>
+          <h2 className="heading-sm">
+            {t("delivery.delivery")} <span className="text-gradient">{t("pharmacies.map")}</span>
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {t("delivery.coverageDescription") || "Toshkent bo'ylab yetkazib berish xizmati"}
+          </p>
+        </div>
+      </div>
+
+      <Card className="overflow-hidden">
+        <DeliveryMap
+          pharmacyCoords={mapPharmacies.length > 0 ? [mapPharmacies[0].lat, mapPharmacies[0].lng] : [41.2995, 69.2401]}
+          destinationCoords={[41.3111, 69.2797]}
+          height="400px"
+        />
+        <div className="p-4 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-xs text-muted-foreground">{t("pharmacies.title") || "Dorixonalar"}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="text-xs text-muted-foreground">{t("delivery.destination") || "Manzil"}</span>
+              </div>
+            </div>
+            <a
+              href="https://www.google.com/maps/@41.2995,69.2401,12z"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            >
+              <Navigation className="w-3 h-3" />
+              {t("pharmacies.viewOnMap") || "Xaritada ko'rish"}
+            </a>
+          </div>
+        </div>
+      </Card>
+    </motion.div>
+  );
+}
+
 function ActiveOrderTracking({ order }: { order: Order }) {
   const { t } = useLanguage();
   const estimatedTime = formatDateTime(order.estimatedDelivery);
@@ -171,25 +255,15 @@ function ActiveOrderTracking({ order }: { order: Order }) {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card className="overflow-hidden">
-            <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-primary/5 via-muted/30 to-secondary/5 flex items-center justify-center border-b border-border/50">
-              <div className="absolute inset-0 grid-pattern opacity-20" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <motion.div
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-orange-10 flex items-center justify-center mx-auto mb-3"
-                  >
-                    <MapPin className="w-8 h-8 text-primary" />
-                  </motion.div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    {t("delivery.liveTracking")}
-                  </p>
-                  <p className="text-xs text-muted-foreground/60 mt-0.5">
-                    {t("delivery.mapComingSoon")}
-                  </p>
-                </div>
-              </div>
+            <div className="w-full aspect-[16/9] border-b border-border/50">
+              <DeliveryMap
+                pharmacyCoords={[41.2995, 69.2401]}
+                destinationCoords={[41.3111, 69.2797]}
+                courierCoords={[41.305, 69.26]}
+                pharmacyName={order.pharmacyName}
+                destinationAddress={order.deliveryAddress.street}
+                height="100%"
+              />
             </div>
 
             <div className="p-5">
