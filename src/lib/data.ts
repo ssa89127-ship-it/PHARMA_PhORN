@@ -15,7 +15,7 @@ import generatedData from "./generated-data.json";
 export const pharmacies: Pharmacy[] = (generatedData.generatedPharmacies as any[]).map((p: any) => ({
   ...p,
   description: `${p.name} — ${p.city} shahridagi ishonchli dorixona. ${p.address}`,
-  logo: `/images/pharmacy-${(parseInt(p.id.replace('ph-', '')) % 5) + 1}.svg`,
+  logo: `/images/pharmacy-${(parseInt(p.id.replace('ph-', '')) % 12) + 1}.svg`,
   coverImage: `/images/pharmacy-cover-${(parseInt(p.id.replace('ph-', '')) % 4) + 1}.svg`,
   email: `info@pharmacy${parseInt(p.id.replace('ph-', ''))}.uz`,
   zipCode: "100000",
