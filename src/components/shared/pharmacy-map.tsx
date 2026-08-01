@@ -30,8 +30,8 @@ interface PharmacyMapProps {
   showDirections?: boolean;
 }
 
-const pinIcon = (isOpen?: boolean, isPrice?: boolean) =>
-  L.divIcon({
+function pinIcon(isOpen?: boolean, isPrice?: boolean) {
+  return L.divIcon({
     className: "",
     html: `<div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center">
       <div style="width:22px;height:22px;border-radius:50%;background:${isPrice ? "#059669" : isOpen === false ? "#ef4444" : "#059669"};border:3px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,.25)"></div>
@@ -40,11 +40,12 @@ const pinIcon = (isOpen?: boolean, isPrice?: boolean) =>
     iconAnchor: [17, 17],
     popupAnchor: [0, -17],
   });
+}
 
 function FitBounds({ pharmacies }: { pharmacies: MapPharmacy[] }) {
   const map = useMap();
   useEffect(() => {
-    if (!pharmacies.length) return;
+    if (!pharmacies.length || !map) return;
     const points = pharmacies.filter((p) => p.lat && p.lng);
     if (!points.length) return;
     if (points.length === 1) {
@@ -61,7 +62,7 @@ function FitBounds({ pharmacies }: { pharmacies: MapPharmacy[] }) {
 function LocateButton() {
   const map = useMap();
   const locate = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation || !map) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         map.setView([pos.coords.latitude, pos.coords.longitude], 14);

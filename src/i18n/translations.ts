@@ -21,6 +21,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       medicines: "Dori vositalari",
       consultation: "Shifokor bilan maslahat",
       delivery: "Yetkazib berish",
+      prescriptions: "Retseptlar",
       dashboard: "Shaxsiy kabinet",
       signIn: "Kirish",
       signUp: "Ro'yxatdan o'tish",
@@ -384,6 +385,16 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       completed: "Yakunlangan",
       rejected: "Rad etilgan",
     },
+    verificationDesc: "Retsept dorixona tomonidan tekshirilgach, dori tayyorlanadi va siz xabarnoma olasiz.",
+    trackTitle: "Retseptlarni kuzatish",
+    howTitle: "Qanday ishlaydi",
+    how: {
+      step1: "Retseptni yuklang",
+      step2: "Dorixona tekshiradi",
+      step3: "Dori tayyorlanadi",
+      step4: "Yetkazib berish",
+    },
+
   },
 
     footer: {
@@ -542,6 +553,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       medicines: "Лекарства",
       consultation: "Консультация",
       delivery: "Доставка",
+      prescriptions: "Рецепты",
       dashboard: "Личный кабинет",
       signIn: "Войти",
       signUp: "Регистрация",
@@ -906,6 +918,16 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       completed: "Завершён",
       rejected: "Отклонён",
     },
+    verificationDesc: "После проверки рецепта аптекой лекарство будет подготовлено, и вы получите уведомление.",
+    trackTitle: "Отслеживать рецепты",
+    howTitle: "Как это работает",
+    how: {
+      step1: "Загрузите рецепт",
+      step2: "Аптека проверяет",
+      step3: "Лекарство готовится",
+      step4: "Доставка",
+    },
+
   },
     footer: {
       company: "Компания",
@@ -1064,6 +1086,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       medicines: "Medicines",
       consultation: "Consultation",
       delivery: "Delivery",
+      prescriptions: "Prescriptions",
       dashboard: "Dashboard",
       signIn: "Sign In",
       signUp: "Sign Up",
@@ -1428,6 +1451,16 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       completed: "Completed",
       rejected: "Rejected",
     },
+    verificationDesc: "Once the pharmacy verifies your prescription, the medicine will be prepared and you will get notified.",
+    trackTitle: "Track prescriptions",
+    howTitle: "How it works",
+    how: {
+      step1: "Upload prescription",
+      step2: "Pharmacy verifies",
+      step3: "Medicine prepared",
+      step4: "Delivery",
+    },
+
   },
     footer: {
       company: "Company",

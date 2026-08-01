@@ -32,6 +32,7 @@ const navItems = [
   { key: "medicines", href: "/medicines" },
   { key: "consultation", href: "/consultation" },
   { key: "delivery", href: "/delivery" },
+  { key: "prescriptions", href: "/retsept" },
 ];
 
 export function Navbar() {
