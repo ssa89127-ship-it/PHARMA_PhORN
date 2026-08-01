@@ -14,6 +14,8 @@ export interface Pharmacy {
   website?: string;
   latitude: number;
   longitude: number;
+  lat: number;
+  lng: number;
   distance?: number;
   rating: number;
   reviewCount: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   MapPin,
@@ -14,14 +14,26 @@ import {
   ChevronDown,
   Building2,
   Navigation,
+  Maximize2,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { pharmacies } from "@/lib/data";
+import type { MapPharmacy } from "@/components/shared/pharmacy-map";
+
+const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full min-h-[200px] w-full items-center justify-center rounded-xl border border-border/50 bg-muted/20">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  ),
+});
 
 type FilterType = "nearest" | "cheapest" | "highest-rated" | "24-7" | "free-delivery" | "open-now" | null;
 
@@ -56,6 +68,8 @@ export default function PharmaciesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [mapPharmacy, setMapPharmacy] = useState<MapPharmacy | null>(null);
+  const [showFullMap, setShowFullMap] = useState(false);
 
   const filteredPharmacies = useMemo(() => {
     let result = [...pharmacies];
@@ -148,7 +162,7 @@ export default function PharmaciesPage() {
                 </motion.div>
               ) : (
                 filteredPharmacies.map((pharmacy, i) => (
-                  <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} index={i} t={t} />
+                  <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} index={i} t={t} onViewMap={() => setMapPharmacy(pharmacy)} />
                 ))
               )}
             </motion.div>
@@ -159,12 +173,33 @@ export default function PharmaciesPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <MapPlaceholder t={t} />
+                <PharmacyMapCard
+                  t={t}
+                  pharmacies={filteredPharmacies}
+                  onExpand={() => setShowFullMap(true)}
+                />
               </motion.div>
             </div>
           </div>
         </div>
       </section>
+
+      <AnimatePresence>
+        {mapPharmacy && (
+          <MapModal
+            pharmacy={mapPharmacy}
+            onClose={() => setMapPharmacy(null)}
+            t={t}
+          />
+        )}
+        {showFullMap && (
+          <FullMapModal
+            pharmacies={filteredPharmacies}
+            onClose={() => setShowFullMap(false)}
+            t={t}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -335,10 +370,12 @@ function PharmacyCard({
   pharmacy,
   index,
   t,
+  onViewMap,
 }: {
   pharmacy: (typeof pharmacies)[number];
   index: number;
   t: (path: string) => string;
+  onViewMap: () => void;
 }) {
   return (
     <motion.div
@@ -347,11 +384,10 @@ function PharmacyCard({
       animate="visible"
       custom={index}
     >
-      <Link href="#">
-        <Card className="group relative overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-0.5">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Card className="group relative overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-0.5">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
-          <div className="p-5 md:p-6 relative">
+        <div className="p-5 md:p-6 relative">
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
                 <Building2 className="w-7 h-7 md:w-8 md:h-8 text-white" />
@@ -446,50 +482,185 @@ function PharmacyCard({
                   {t("pharmacies.open")}
                 </Badge>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto text-xs"
+                onClick={onViewMap}
+              >
+                <MapPin className="w-3.5 h-3.5 mr-1" />
+                {t("pharmacies.map")}
+              </Button>
             </div>
           </div>
         </Card>
-      </Link>
+      </motion.div>
+  );
+}
+
+function PharmacyMapCard({
+  t,
+  pharmacies: list,
+  onExpand,
+}: {
+  t: (path: string) => string;
+  pharmacies: (typeof pharmacies)[number][];
+  onExpand: () => void;
+}) {
+  return (
+    <Card className="sticky top-24 overflow-hidden">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-sm">{t("pharmacies.map")}</h3>
+          </div>
+          <button
+            onClick={onExpand}
+            className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+            aria-label={t("pharmacies.mapExpand")}
+          >
+            <Maximize2 className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+
+        <PharmacyMap
+          pharmacies={list.map((p) => ({
+            id: p.id,
+            name: p.name,
+            address: p.address,
+            city: p.city,
+            phone: p.phone,
+            lat: p.lat,
+            lng: p.lng,
+            isOpen: p.isOpen,
+            deliveryTime: p.deliveryTime,
+          }))}
+          height="340px"
+        />
+      </div>
+    </Card>
+  );
+}
+
+function MapModal({
+  pharmacy,
+  onClose,
+  t,
+}: {
+  pharmacy: MapPharmacy;
+  onClose: () => void;
+  t: (path: string) => string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-2xl bg-background rounded-2xl border border-border shadow-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-border/50">
+          <div>
+            <h3 className="font-semibold">{pharmacy.name}</h3>
+            <p className="text-sm text-muted-foreground">
+              {pharmacy.address}
+              {pharmacy.city ? `, ${pharmacy.city}` : ""}
+            </p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <PharmacyMap pharmacies={[pharmacy]} height="420px" />
+        <div className="p-5 flex flex-wrap gap-3">
+          <Button
+            variant="primary"
+            size="sm"
+            asChild
+          >
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Navigation className="w-4 h-4 mr-1.5" />
+              {t("pharmacies.directions")}
+            </a>
+          </Button>
+          {pharmacy.phone && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={`tel:${pharmacy.phone}`}>
+                <Phone className="w-4 h-4 mr-1.5" />
+                {pharmacy.phone}
+              </a>
+            </Button>
+          )}
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
 
-function MapPlaceholder({ t }: { t: (path: string) => string }) {
+function FullMapModal({
+  pharmacies: list,
+  onClose,
+  t,
+}: {
+  pharmacies: (typeof pharmacies)[number][];
+  onClose: () => void;
+  t: (path: string) => string;
+}) {
   return (
-    <Card className="sticky top-24 overflow-hidden">
-      <div className="p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <MapPin className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-sm">{t("pharmacies.map")}</h3>
-        </div>
-
-        <div className="relative w-full aspect-[4/3] rounded-xl bg-gradient-to-br from-primary/5 via-muted/30 to-secondary/5 overflow-hidden flex items-center justify-center border border-border/50">
-          <div className="absolute inset-0 grid-pattern opacity-20" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-blue-10 flex items-center justify-center mx-auto mb-3"
-              >
-                <MapPin className="w-7 h-7 text-primary" />
-              </motion.div>
-              <p className="text-sm font-medium text-muted-foreground">
-                {t("pharmacies.map")}
-              </p>
-              <p className="text-xs text-muted-foreground/60 mt-0.5">
-                {t("dashboard.admin.comingSoon")}
-              </p>
-            </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-5xl h-[80vh] bg-background rounded-2xl border border-border shadow-xl overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-5 border-b border-border/50 shrink-0">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold">
+              {t("pharmacies.map")} ({list.length})
+            </h3>
           </div>
-
-          <div className="absolute bottom-3 left-3 right-3">
-            <div className="glass-card rounded-lg px-3 py-2 text-xs text-muted-foreground text-center">
-              {t("pharmacies.map")}
-            </div>
-          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      </div>
-    </Card>
+        <div className="flex-1">
+          <PharmacyMap
+            pharmacies={list.map((p) => ({
+              id: p.id,
+              name: p.name,
+              address: p.address,
+              city: p.city,
+              phone: p.phone,
+              lat: p.lat,
+              lng: p.lng,
+              isOpen: p.isOpen,
+              deliveryTime: p.deliveryTime,
+            }))}
+            height="100%"
+          />
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

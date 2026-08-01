@@ -3,6 +3,7 @@
 import { useState, useMemo, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Pill,
   Star,
@@ -32,7 +33,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice } from "@/lib/utils";
-import { medicines, medicinePrices } from "@/lib/data";
+import { medicines, medicinePrices, pharmacies } from "@/lib/data";
+import type { MapPharmacy } from "@/components/shared/pharmacy-map";
+
+const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[260px] w-full items-center justify-center rounded-xl border border-border/50 bg-muted/20">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  ),
+});
 import { useCart } from "@/store/cart";
 import type { Medicine, MedicinePrice } from "@/types";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -80,6 +91,28 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
   );
 
   const unavailablePrices = useMemo(() => prices.filter((p) => !p.isAvailable), [prices]);
+
+  const mapPharmacies: MapPharmacy[] = useMemo(() => {
+    const result: MapPharmacy[] = [];
+    for (const price of availablePrices) {
+      const ph = pharmacies.find((p) => p.id === price.pharmacyId);
+      if (!ph) continue;
+      result.push({
+        id: price.pharmacyId,
+        name: price.pharmacyName,
+        address: ph.address,
+        city: ph.city,
+        phone: ph.phone,
+        lat: ph.lat,
+        lng: ph.lng,
+        isOpen: ph.isOpen,
+        price: price.price,
+        formatPrice: formatPrice(price.price),
+        deliveryTime: ph.deliveryTime,
+      });
+    }
+    return result;
+  }, [availablePrices]);
 
   const cheapestPrice = availablePrices.length > 0 ? availablePrices[0] : null;
 
@@ -143,6 +176,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
                 availablePrices={availablePrices}
                 unavailablePrices={unavailablePrices}
                 selectedPrice={selectedPrice}
+                mapPharmacies={mapPharmacies}
                 onSelectPharmacy={setSelectedPharmacyId}
               />
 
@@ -160,6 +194,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
                 cheapestPrice={cheapestPrice}
                 availablePrices={availablePrices}
                 unavailablePrices={unavailablePrices}
+                mapPharmacies={mapPharmacies}
                 quantity={quantity}
                 onQuantityChange={setQuantity}
                 onAddToCart={handleAddToCart}
@@ -387,12 +422,14 @@ function PriceComparisonSection({
   availablePrices,
   unavailablePrices,
   selectedPrice,
+  mapPharmacies,
   onSelectPharmacy,
 }: {
   medicine: Medicine;
   availablePrices: MedicinePrice[];
   unavailablePrices: MedicinePrice[];
   selectedPrice: MedicinePrice | null;
+  mapPharmacies: MapPharmacy[];
   onSelectPharmacy: (id: string | null) => void;
 }) {
   const { t } = useLanguage();
@@ -654,6 +691,7 @@ function Sidebar({
   cheapestPrice,
   availablePrices,
   unavailablePrices,
+  mapPharmacies,
   quantity,
   onQuantityChange,
   onAddToCart,
@@ -664,6 +702,7 @@ function Sidebar({
   cheapestPrice: MedicinePrice | null;
   availablePrices: MedicinePrice[];
   unavailablePrices: MedicinePrice[];
+  mapPharmacies: MapPharmacy[];
   quantity: number;
   onQuantityChange: (q: number) => void;
   onAddToCart: () => void;
@@ -799,6 +838,12 @@ function Sidebar({
             <Building2 className="w-4 h-4 text-primary" />
             {t("pharmacies.title")}
           </h3>
+
+          {mapPharmacies.length > 0 && (
+            <div className="mb-4">
+              <PharmacyMap pharmacies={mapPharmacies} height="260px" showLocateButton={false} />
+            </div>
+          )}
 
           {availablePrices.length === 0 && unavailablePrices.length === 0 && (
             <div className="text-center py-6">

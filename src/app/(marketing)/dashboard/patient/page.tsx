@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Package,
   CalendarClock,
+  ClipboardList,
   Heart,
   Bell,
   User,
@@ -78,15 +79,17 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { PrescriptionsSection } from "@/components/shared/prescriptions-section";
 import type { Order, Notification } from "@/types";
 
-type Tab = "overview" | "orders" | "appointments" | "saved-medicines" | "notifications" | "profile" | "addresses" | "payment-methods" | "medical-records" | "invoices";
+type Tab = "overview" | "orders" | "appointments" | "saved-medicines" | "notifications" | "profile" | "addresses" | "payment-methods" | "medical-records" | "invoices" | "prescriptions";
 
 const sidebarItems: { id: Tab; icon: React.ElementType }[] = [
   { id: "overview", icon: LayoutDashboard },
   { id: "orders", icon: Package },
   { id: "appointments", icon: CalendarClock },
   { id: "saved-medicines", icon: Heart },
+  { id: "prescriptions", icon: ClipboardList },
   { id: "notifications", icon: Bell },
   { id: "profile", icon: User },
   { id: "addresses", icon: MapPin },
@@ -100,6 +103,7 @@ const tabLabelKeys: Record<Tab, string> = {
   orders: "dashboard.patient.orders",
   appointments: "dashboard.patient.appointments",
   "saved-medicines": "dashboard.patient.savedMedicines",
+  prescriptions: "dashboard.patient.prescriptions",
   notifications: "dashboard.patient.notifications",
   profile: "dashboard.patient.profile",
   addresses: "dashboard.patient.addresses",
@@ -646,6 +650,19 @@ function AppointmentsTab() {
         ))}
       </motion.div>
     </div>
+  );
+}
+
+function PrescriptionsTab() {
+  const { t } = useLanguage();
+  return (
+    <motion.div variants={itemVariants} className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold">{t("dashboard.patient.prescriptions")}</h2>
+        <p className="text-sm text-muted-foreground">{t("prescriptions.subtitle")}</p>
+      </div>
+      <PrescriptionsSection />
+    </motion.div>
   );
 }
 
@@ -1237,6 +1254,7 @@ function TabContent({ tab }: { tab: Tab }) {
     orders: OrdersTab,
     appointments: AppointmentsTab,
     "saved-medicines": SavedMedicinesTab,
+    prescriptions: PrescriptionsTab,
     notifications: NotificationsTab,
     profile: ProfileTab,
     addresses: AddressesTab,
