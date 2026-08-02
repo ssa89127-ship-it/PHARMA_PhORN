@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="grad_suppository_jpg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#be185d" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#9d174d" stop-opacity="0.15" />
+    </linearGradient>
+    <filter id="shadow_suppository_jpg">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#grad_suppository_jpg)" rx="16" />
+  <g filter="url(#shadow_suppository_jpg)">
+  
+  <rect x="55" y="70" width="90" height="60" rx="30" fill="#be185d" />
+  <rect x="55" y="70" width="90" height="30" rx="30" fill="#9d174d" opacity="0.3" />
+  <line x1="100" y1="70" x2="100" y2="130" stroke="white" stroke-width="0.5" opacity="0.4" />
+  <text x="100" y="105" text-anchor="middle" fill="white" font-size="11" font-family="Arial" font-weight="bold">500mg</text>
+  </g>
+</svg>

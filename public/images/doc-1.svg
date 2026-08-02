@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg_doc-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#1d4ed8" stop-opacity="0.25" />
+    </linearGradient>
+    <linearGradient id="coat_doc-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg_doc-1)" />
+  <circle cx="100" cy="100" r="85" fill="white" stroke="#3b82f6" stroke-width="1" opacity="0.6" />
+  
+        <ellipse cx="100" cy="65" rx="36" ry="32" fill="#1a1a2e" />
+        <path d="M64 65 C64 45, 136 45, 136 65" fill="#1a1a2e" />
+  
+        <ellipse cx="100" cy="95" rx="30" ry="34" fill="#e8b89d" />
+  
+        <path d="M82 83 Q88 80 94 83" stroke="#1a1a2e" stroke-width="1.5" fill="none" />
+        <path d="M106 83 Q112 80 118 83" stroke="#1a1a2e" stroke-width="1.5" fill="none" />
+  
+        <ellipse cx="88" cy="90" rx="3.5" ry="4" fill="#1a1a2e" />
+        <ellipse cx="112" cy="90" rx="3.5" ry="4" fill="#1a1a2e" />
+        <circle cx="89.5" cy="89" r="1" fill="white" />
+        <circle cx="113.5" cy="89" r="1" fill="white" />
+  
+        <path d="M100 93 L97 99 Q100 101 103 99 Z" fill="#c0a080" opacity="0.5" />
+  
+        <path d="M90 103 Q100 112 110 103" stroke="#c0392b" stroke-width="1.5" fill="none" />
+  
+        <path d="M65 130 Q65 115, 100 110 Q135 115, 135 130 L135 200 L65 200 Z" fill="white" />
+        <path d="M65 130 Q65 115, 100 110 Q135 115, 135 130 L135 200 L65 200 Z" stroke="#3b82f6" stroke-width="1.5" fill="none" />
+  
+        <path d="M85 115 L100 130 L115 115" stroke="#3b82f6" stroke-width="2" fill="none" />
+  
+        <rect x="75" y="145" width="50" height="16" rx="3" fill="#3b82f6" />
+        <text x="100" y="157" text-anchor="middle" fill="white" font-size="7" font-family="Arial, sans-serif" font-weight="bold">Terapevt</text>
+  
+        <path d="M88 118 Q85 140 90 155 Q95 165 100 160" stroke="#555" stroke-width="2" fill="none" />
+        <circle cx="100" cy="162" r="4" fill="#555" />
+        <circle cx="100" cy="162" r="2" fill="#888" />
+</svg>
