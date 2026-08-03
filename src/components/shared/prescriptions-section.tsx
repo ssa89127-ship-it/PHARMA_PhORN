@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Clock, FileText, ShieldCheck, Trash2, UploadCloud } from "lucide-react";
 
+const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 const statusSteps: PrescriptionStatus[] = ["pending", "verified", "preparing", "ready", "completed"];
 
 export function PrescriptionsSection() {
@@ -72,115 +73,131 @@ export function PrescriptionsSection() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <UploadCloud className="h-5 w-5 text-primary" />
-            {t("prescriptions.uploadTitle")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => fileRef.current?.click()}
-            onKeyDown={(e) => e.key === "Enter" && fileRef.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
-            }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              handleFile(e.dataTransfer.files?.[0]);
-            }}
-            className={cn(
-              "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors",
-              dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/30 hover:border-primary/50"
-            )}
-          >
-            {image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt="prescription" className="max-h-48 rounded-lg object-contain" />
-            ) : (
-              <>
-                <UploadCloud className="h-10 w-10 text-muted-foreground" />
-                <p className="text-sm font-medium">{t("prescriptions.dragDrop")}</p>
-                <p className="text-xs text-muted-foreground">{t("prescriptions.fileHint")}</p>
-              </>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleFile(e.target.files?.[0])}
-            />
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...spring, duration: 0.5 }}
+      >
+        <Card className="hover:shadow-lg transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <UploadCloud className="h-5 w-5 text-primary" />
+              {t("prescriptions.uploadTitle")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => fileRef.current?.click()}
+              onKeyDown={(e) => e.key === "Enter" && fileRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                handleFile(e.dataTransfer.files?.[0]);
+              }}
+              className={cn(
+                "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-all duration-300",
+                dragOver ? "border-primary bg-primary/5 scale-[1.02]" : "border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5"
+              )}
+            >
+              {image ? (
+                <motion.img
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={spring}
+                  src={image}
+                  alt="prescription"
+                  className="max-h-48 rounded-lg object-contain"
+                />
+              ) : (
+                <>
+                  <UploadCloud className="h-10 w-10 text-muted-foreground" />
+                  <p className="text-sm font-medium">{t("prescriptions.dragDrop")}</p>
+                  <p className="text-xs text-muted-foreground">{t("prescriptions.fileHint")}</p>
+                </>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+            </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="rx-medicine">{t("prescriptions.medicineName")} *</Label>
-              <Input
-                id="rx-medicine"
-                value={medicineName}
-                onChange={(e) => setMedicineName(e.target.value)}
-                placeholder={t("prescriptions.medicinePlaceholder")}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="rx-medicine">{t("prescriptions.medicineName")} *</Label>
+                <Input
+                  id="rx-medicine"
+                  value={medicineName}
+                  onChange={(e) => setMedicineName(e.target.value)}
+                  placeholder={t("prescriptions.medicinePlaceholder")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rx-dosage">{t("prescriptions.dosage")} *</Label>
+                <Input
+                  id="rx-dosage"
+                  value={dosage}
+                  onChange={(e) => setDosage(e.target.value)}
+                  placeholder={t("prescriptions.dosagePlaceholder")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rx-doctor">{t("prescriptions.doctorName")}</Label>
+                <Input
+                  id="rx-doctor"
+                  value={doctorName}
+                  onChange={(e) => setDoctorName(e.target.value)}
+                  placeholder={t("prescriptions.doctorPlaceholder")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="rx-pharmacy">{t("prescriptions.pharmacyName")}</Label>
+                <Input
+                  id="rx-pharmacy"
+                  value={pharmacyName}
+                  onChange={(e) => setPharmacyName(e.target.value)}
+                  placeholder={t("prescriptions.anyPharmacy")}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="rx-dosage">{t("prescriptions.dosage")} *</Label>
-              <Input
-                id="rx-dosage"
-                value={dosage}
-                onChange={(e) => setDosage(e.target.value)}
-                placeholder={t("prescriptions.dosagePlaceholder")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="rx-doctor">{t("prescriptions.doctorName")}</Label>
-              <Input
-                id="rx-doctor"
-                value={doctorName}
-                onChange={(e) => setDoctorName(e.target.value)}
-                placeholder={t("prescriptions.doctorPlaceholder")}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="rx-pharmacy">{t("prescriptions.pharmacyName")}</Label>
-              <Input
-                id="rx-pharmacy"
-                value={pharmacyName}
-                onChange={(e) => setPharmacyName(e.target.value)}
-                placeholder={t("prescriptions.anyPharmacy")}
-              />
-            </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="rx-notes">{t("prescriptions.notes")}</Label>
-            <textarea
-              id="rx-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("prescriptions.notesPlaceholder")}
-              rows={2}
-              className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="rx-notes">{t("prescriptions.notes")}</Label>
+              <textarea
+                id="rx-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t("prescriptions.notesPlaceholder")}
+                rows={2}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm outline-none transition-all duration-300 placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-              {t("prescriptions.verificationHint")}
-            </p>
-            <Button onClick={submit} disabled={!medicineName.trim() || !dosage.trim()}>
-              {t("prescriptions.submit")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-center justify-between gap-4">
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                {t("prescriptions.verificationHint")}
+              </p>
+              <Button
+                onClick={submit}
+                disabled={!medicineName.trim() || !dosage.trim()}
+                className="transition-all duration-300"
+              >
+                {t("prescriptions.submit")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       <div className="flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-lg font-semibold">
@@ -199,16 +216,17 @@ export function PrescriptionsSection() {
         </Card>
       ) : (
         <div className="space-y-4">
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {items.map((rx) => (
               <motion.div
                 key={rx.id}
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -30, scale: 0.9 }}
+                transition={{ ...spring, duration: 0.4 }}
                 layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
               >
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow duration-300">
                   <CardContent className="p-5">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -225,14 +243,25 @@ export function PrescriptionsSection() {
                           {new Date(rx.createdAt).toLocaleDateString(language === "uz" ? "uz-UZ" : language === "ru" ? "ru-RU" : "en-GB")}
                         </p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => onRemove(rx.id)} aria-label={t("prescriptions.delete")}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onRemove(rx.id)}
+                        aria-label={t("prescriptions.delete")}
+                        className="hover:bg-destructive/10 transition-colors duration-200"
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
 
                     {rx.imageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={rx.imageUrl} alt={rx.medicineName} className="mt-3 max-h-36 rounded-lg object-contain" />
+                      <motion.img
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        src={rx.imageUrl}
+                        alt={rx.medicineName}
+                        className="mt-3 max-h-36 rounded-lg object-contain"
+                      />
                     )}
 
                     {rx.status !== "rejected" ? (
@@ -241,9 +270,12 @@ export function PrescriptionsSection() {
                           {stepsLabels.map((label, i) => (
                             <div key={statusSteps[i]} className="flex flex-1 items-center">
                               <div className="flex flex-col items-center gap-1.5">
-                                <div
+                                <motion.div
+                                  initial={{ scale: 0.8 }}
+                                  animate={{ scale: i <= getStatusIndex(rx.status) ? 1 : 0.9 }}
+                                  transition={spring}
                                   className={cn(
-                                    "flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors",
+                                    "flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors duration-300",
                                     i <= getStatusIndex(rx.status)
                                       ? "border-primary bg-primary text-primary-foreground"
                                       : "border-muted-foreground/30 text-muted-foreground"
@@ -254,10 +286,10 @@ export function PrescriptionsSection() {
                                   ) : (
                                     <Clock className="h-3.5 w-3.5" />
                                   )}
-                                </div>
+                                </motion.div>
                                 <span
                                   className={cn(
-                                    "hidden text-[10px] font-medium sm:block",
+                                    "hidden text-[10px] font-medium sm:block transition-colors duration-300",
                                     i <= getStatusIndex(rx.status) ? "text-primary" : "text-muted-foreground"
                                   )}
                                 >
@@ -267,7 +299,7 @@ export function PrescriptionsSection() {
                               {i < stepsLabels.length - 1 && (
                                 <div
                                   className={cn(
-                                    "mx-1 h-0.5 flex-1 rounded",
+                                    "mx-1 h-0.5 flex-1 rounded transition-colors duration-500",
                                     i < getStatusIndex(rx.status) ? "bg-primary" : "bg-muted"
                                   )}
                                 />
@@ -280,7 +312,7 @@ export function PrescriptionsSection() {
                             <span
                               key={statusSteps[i]}
                               className={cn(
-                                "text-[10px]",
+                                "text-[10px] transition-colors duration-300",
                                 i === getStatusIndex(rx.status) ? "font-semibold text-primary" : "text-muted-foreground"
                               )}
                             >

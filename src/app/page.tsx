@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, memo } from "react";
+import { motion, useScroll, useTransform, useSpring, useInView } from "framer-motion";
 import {
   Search,
   ArrowRight,
@@ -11,7 +11,6 @@ import {
   Star,
   Heart,
   Phone,
-  MessageCircle,
   ChevronRight,
   Pill,
   Activity,
@@ -47,7 +46,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
 import {
   Accordion,
   AccordionItem,
@@ -64,50 +62,59 @@ import {
   doctors,
 } from "@/lib/data";
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true },
-  transition: { duration: 0.5 },
-};
+const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
+const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
+const bouncySpring = { type: "spring" as const, stiffness: 300, damping: 20 };
 
-const staggerContainer = {
-  initial: { opacity: 0 },
-  whileInView: { opacity: 1 },
-  viewport: { once: true },
-  transition: { staggerChildren: 0.1 },
-};
+const smoothFadeUp = { initial: { opacity: 0, y: 40 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-100px" }, transition: { ...spring, duration: 0.8 } };
+
+function SmoothCard({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ ...spring, delay }}
+      whileHover={{ y: -6, scale: 1.02, transition: { ...gentleSpring } }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function SmoothIcon({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.15, rotate: 5, transition: bouncySpring }}
+      whileTap={{ scale: 0.9 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const [inView, setInView] = useState(false);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setInView(true); },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
+    if (!isInView) return;
+    const duration = 1800;
+    const startTime = performance.now();
 
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const duration = 2000;
-    const increment = target / (duration / 16);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(Math.floor(start));
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, target]);
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }, [isInView, target]);
 
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
@@ -116,9 +123,9 @@ export default function HomePage() {
   const { t, tArray } = useLanguage();
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden scroll-smooth">
       <HeroSection t={t} />
-      <LiveMedicineCounter />
+      <LiveMedicineCounter t={t} />
       <StatsSection t={t} />
       <CategoriesSection t={t} />
       <FeaturedPharmacies t={t} />
@@ -128,77 +135,67 @@ export default function HomePage() {
       <TestimonialsSection t={t} />
       <HowItWorks t={t} />
       <FAQSection t={t} tArray={tArray} />
-      <PartnerLogos />
+      <PartnerLogos t={t} />
       <CTASection t={t} />
     </div>
   );
 }
 
-function HeroSection({ t }: { t: (path: string) => string }) {
+const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => string }) {
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 500], [0, 150]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const scale = useTransform(scrollY, [0, 300], [1, 0.95]);
+  const y = useTransform(scrollY, [0, 600], [0, 200]);
+  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
+  const scale = useTransform(scrollY, [0, 400], [1, 0.92]);
+  const springY = useSpring(y, { stiffness: 50, damping: 20 });
 
   return (
     <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
-      {/* Animated background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 grid-pattern opacity-30" />
+        <div className="absolute inset-0 grid-pattern opacity-20" />
         <motion.div
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 5, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-20 right-[-5%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/10 to-blue-500/5 blur-[120px]"
+          animate={{ scale: [1, 1.15, 1], rotate: [0, 3, 0] }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 right-[-5%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-primary/8 to-blue-500/4 blur-[120px]"
+          style={{ willChange: "transform" }}
         />
         <motion.div
-          animate={{ scale: [1, 1.15, 1], rotate: [0, -3, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-20 left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-secondary/10 to-purple-500/5 blur-[100px]"
+          animate={{ scale: [1, 1.1, 1], rotate: [0, -2, 0] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-20 left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-secondary/8 to-purple-500/4 blur-[100px]"
+          style={{ willChange: "transform" }}
         />
       </div>
 
-      {/* Floating pills decoration */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
-            animate={{
-              y: [0, -30, 0],
-              rotate: [0, 180, 360],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 8 + i * 2,
-              repeat: Infinity,
-              delay: i * 1.5,
-            }}
+            animate={{ y: [0, -25, 0], rotate: [0, 90, 180], opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 10 + i * 3, repeat: Infinity, delay: i * 2, ease: "easeInOut" }}
             className="absolute"
-            style={{
-              left: `${15 + i * 15}%`,
-              top: `${20 + (i % 3) * 25}%`,
-            }}
+            style={{ left: `${20 + i * 15}%`, top: `${25 + (i % 3) * 20}%`, willChange: "transform" }}
           >
             <div className={cn(
-              "w-8 h-8 rounded-full border-2 opacity-20",
-              i % 3 === 0 ? "border-primary/30 bg-primary/5" :
-              i % 3 === 1 ? "border-blue-400/30 bg-blue-400/5" :
-              "border-green-400/30 bg-green-400/5"
+              "w-6 h-6 rounded-full border-2",
+              i % 3 === 0 ? "border-primary/20 bg-primary/3" :
+              i % 3 === 1 ? "border-blue-400/20 bg-blue-400/3" :
+              "border-green-400/20 bg-green-400/3"
             )} />
           </motion.div>
         ))}
       </div>
 
-      <motion.div style={{ y, opacity, scale }} className="container-custom relative z-10">
+      <motion.div style={{ y: springY, opacity, scale }} className="container-custom relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ ...spring, duration: 1 }}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
+              transition={{ ...bouncySpring, delay: 0.2 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6"
             >
               <span className="relative flex h-2 w-2">
@@ -217,16 +214,26 @@ function HeroSection({ t }: { t: (path: string) => string }) {
               <span className="text-foreground/70">{t("hero.title3")}</span>
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...spring, delay: 0.3, duration: 0.8 }}
+              className="text-lg text-muted-foreground mb-8 max-w-xl leading-relaxed"
+            >
               {t("hero.subtitle")}
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...spring, delay: 0.4 }}
+              className="flex flex-col sm:flex-row gap-3 mb-10"
+            >
               <Link href="/medicines">
                 <Button variant="primary" size="lg" className="w-full sm:w-auto group relative overflow-hidden shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30">
                   <span className="relative z-10 flex items-center">
                     {t("hero.cta")}
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1.5 transition-transform duration-300" />
                   </span>
                 </Button>
               </Link>
@@ -236,13 +243,12 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                   {t("hero.cta2")}
                 </Button>
               </Link>
-            </div>
+            </motion.div>
 
-            {/* Search bar */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...spring, delay: 0.5 }}
               className="relative max-w-xl"
             >
               <div className="glass-card rounded-2xl p-1 flex items-center gap-2 shadow-lg shadow-black/5">
@@ -265,7 +271,7 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                   <Link
                     key={item}
                     href={`/medicines?q=${item}`}
-                    className="text-xs px-3 py-1 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary transition-all duration-200 hover:scale-105"
+                    className="text-xs px-3 py-1 rounded-full bg-muted/50 hover:bg-primary/10 hover:text-primary transition-all duration-300 hover:scale-105"
                   >
                     {item}
                   </Link>
@@ -273,45 +279,52 @@ function HeroSection({ t }: { t: (path: string) => string }) {
               </div>
             </motion.div>
 
-            {/* Trust badges */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
               className="flex items-center gap-6 mt-8"
             >
               {[
-                { icon: Shield, text: "100% Haqiqiy" },
-                { icon: Truck, text: "30 daqiqa" },
+                { icon: Shield, text: t("whyChooseUs.authentic.title") },
+                { icon: Truck, text: t("liveStats.delivery") },
                 { icon: Clock, text: "24/7" },
               ].map((badge, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...spring, delay: 0.8 + i * 0.1 }}
+                  className="flex items-center gap-2 text-sm text-muted-foreground"
+                >
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                     <badge.icon className="w-4 h-4 text-primary" />
                   </div>
                   <span>{badge.text}</span>
-                </div>
+                </motion.div>
               ))}
             </motion.div>
           </motion.div>
 
-          {/* Right side - Quick Order Card */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0, x: 80, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ ...spring, delay: 0.3, duration: 1.2 }}
             className="hidden lg:block relative"
           >
             <div className="relative">
-              <div className="absolute -top-10 -right-10 w-80 h-80 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-full blur-3xl" />
-              <div className="relative bg-white/80 dark:bg-card/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-black/10 border border-white/20">
+              <div className="absolute -top-10 -right-10 w-80 h-80 bg-gradient-to-br from-primary/15 to-blue-500/15 rounded-full blur-3xl" />
+              <motion.div
+                whileHover={{ y: -4, transition: gentleSpring }}
+                className="relative bg-white/80 dark:bg-card/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-black/10 border border-white/20"
+              >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/30">
                     <Pill className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Tezkor buyurtma</h3>
-                    <p className="text-xs text-muted-foreground">30 daqiqada yetkazish</p>
+                    <h3 className="font-semibold">{t("quickOrder.title")}</h3>
+                    <p className="text-xs text-muted-foreground">{t("quickOrder.subtitle")}</p>
                   </div>
                 </div>
 
@@ -319,12 +332,13 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                   {medicines.slice(0, 4).map((med, i) => (
                     <motion.div
                       key={med.id}
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 0, x: 30 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + i * 0.1 }}
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-all duration-200 group cursor-pointer border border-transparent hover:border-primary/10"
+                      transition={{ ...spring, delay: 0.5 + i * 0.1 }}
+                      whileHover={{ x: 4, transition: gentleSpring }}
+                      className="flex items-center gap-3 p-3 rounded-xl cursor-pointer border border-transparent hover:border-primary/10 hover:bg-primary/5 transition-colors duration-300"
                     >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-blue-50 flex items-center justify-center">
                         <div className="w-5 h-5 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
                           {med.name.charAt(0)}
                         </div>
@@ -349,12 +363,11 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
 
-              {/* Floating delivery badge */}
               <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 3 }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                 className="absolute -bottom-6 -left-6 bg-white dark:bg-card rounded-2xl p-4 shadow-xl shadow-black/10 border border-white/20"
               >
                 <div className="flex items-center gap-3">
@@ -363,16 +376,15 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                   </div>
                   <div>
                     <p className="text-xs font-semibold">+2,500</p>
-                    <p className="text-[10px] text-muted-foreground">bugun yetkazildi</p>
+                    <p className="text-[10px] text-muted-foreground">{t("quickOrder.deliveredToday")}</p>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Floating notification */}
               <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.5 }}
+                initial={{ opacity: 0, x: 60, scale: 0.8 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                transition={{ ...bouncySpring, delay: 1.8 }}
                 className="absolute -top-4 -left-8 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-black/10 border border-white/20"
               >
                 <div className="flex items-center gap-2">
@@ -380,8 +392,8 @@ function HeroSection({ t }: { t: (path: string) => string }) {
                     <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-medium">Buyurtma tasdiqlandi</p>
-                    <p className="text-[10px] text-muted-foreground">2 daqiqa oldin</p>
+                    <p className="text-xs font-medium">{t("quickOrder.orderConfirmed")}</p>
+                    <p className="text-[10px] text-muted-foreground">{t("quickOrder.timeAgo")}</p>
                   </div>
                 </div>
               </motion.div>
@@ -391,15 +403,15 @@ function HeroSection({ t }: { t: (path: string) => string }) {
       </motion.div>
     </section>
   );
-}
+});
 
-function LiveMedicineCounter() {
+const LiveMedicineCounter = memo(function LiveMedicineCounter({ t }: { t: (path: string) => string }) {
   const [count, setCount] = useState(30000);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCount(prev => prev + Math.floor(Math.random() * 3));
-    }, 5000);
+    }, 8000);
     return () => clearInterval(timer);
   }, []);
 
@@ -407,44 +419,68 @@ function LiveMedicineCounter() {
     <section className="relative -mt-1 py-6 bg-gradient-to-r from-primary/5 via-blue-500/5 to-purple-500/5 border-y border-primary/10">
       <div className="container-custom">
         <div className="flex items-center justify-center gap-8 flex-wrap">
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={spring}
+            className="flex items-center gap-2"
+          >
             <span className="relative flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
             </span>
             <span className="text-sm font-medium">
-              <AnimatedCounter target={30000} suffix="+" /> dori mavjud
+              <AnimatedCounter target={30000} suffix="+" /> {t("liveStats.medicines")}
             </span>
-          </div>
+          </motion.div>
           <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ ...spring, delay: 0.1 }}
+            className="flex items-center gap-2"
+          >
             <Building2 className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">
-              <AnimatedCounter target={152} /> dorixona
+              <AnimatedCounter target={152} /> {t("liveStats.pharmacies")}
             </span>
-          </div>
+          </motion.div>
           <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ ...spring, delay: 0.2 }}
+            className="flex items-center gap-2"
+          >
             <MapPin className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium">
-              <AnimatedCounter target={15} /> shahar
+              <AnimatedCounter target={15} /> {t("liveStats.cities")}
             </span>
-          </div>
+          </motion.div>
           <div className="w-px h-4 bg-border" />
-          <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ ...spring, delay: 0.3 }}
+            className="flex items-center gap-2"
+          >
             <Zap className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm font-medium">30 daqiqada yetkazish</span>
-          </div>
+            <span className="text-sm font-medium">{t("liveStats.delivery")}</span>
+          </motion.div>
         </div>
       </div>
     </section>
   );
-}
+});
 
-function StatsSection({ t }: { t: (path: string) => string }) {
+const StatsSection = memo(function StatsSection({ t }: { t: (path: string) => string }) {
   const stats = [
     { icon: Building2, value: 152, suffix: "+", label: t("stats.pharmacies"), color: "from-blue-500 to-indigo-600" },
-    { icon: Package, value: 30000, suffix: "+", label: "Dorilar", color: "from-emerald-500 to-green-600" },
+    { icon: Package, value: 30000, suffix: "+", label: t("stats.medicines"), color: "from-emerald-500 to-green-600" },
     { icon: Users, value: 100000, suffix: "+", label: t("stats.patients"), color: "from-purple-500 to-pink-600" },
     { icon: Award, value: 4.9, suffix: "", label: t("stats.rating"), color: "from-orange-500 to-red-600" },
   ];
@@ -452,41 +488,30 @@ function StatsSection({ t }: { t: (path: string) => string }) {
   return (
     <section className="py-16 relative">
       <div className="container-custom">
-        <motion.div
-          {...staggerContainer}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {stats.map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="relative group"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-blue-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative bg-white/50 dark:bg-card/50 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-                <div className={cn(
-                  "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg",
+            <SmoothCard key={stat.label} delay={i * 0.1}>
+              <div className="relative bg-white/50 dark:bg-card/50 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20 hover:border-primary/20 transition-all duration-500 hover:shadow-lg hover:shadow-primary/5">
+                <SmoothIcon className={cn(
+                  "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-4 shadow-lg",
                   stat.color
                 )}>
                   <stat.icon className="w-7 h-7 text-white" />
-                </div>
+                </SmoothIcon>
                 <div className="text-3xl md:text-4xl font-bold mb-1">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </div>
-            </motion.div>
+            </SmoothCard>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
-}
+});
 
-function CategoriesSection({ t }: { t: (path: string) => string }) {
+const CategoriesSection = memo(function CategoriesSection({ t }: { t: (path: string) => string }) {
   const getCategoryIcon = (icon: string) => {
     const icons: Record<string, React.ReactNode> = {
       Activity: <Activity className="w-6 h-6" />,
@@ -531,7 +556,7 @@ function CategoriesSection({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="text-center mb-12">
+        <motion.div {...smoothFadeUp} className="text-center mb-12">
           <Badge variant="primary" className="mb-4">{t("categories.title")}</Badge>
           <h2 className="heading-lg mb-4">
             {t("categories.subtitle")}
@@ -541,40 +566,31 @@ function CategoriesSection({ t }: { t: (path: string) => string }) {
           </p>
         </motion.div>
 
-        <motion.div
-          {...staggerContainer}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
-        >
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {categories.slice(0, 18).map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.03 }}
-            >
+            <SmoothCard key={cat.id} delay={i * 0.03}>
               <Link href={`/medicines?category=${cat.slug}`}>
-                <div className="group relative bg-white/60 dark:bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20 hover:border-primary/30 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md text-white",
+                <div className="group relative bg-white/60 dark:bg-card/60 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/20 hover:border-primary/30 transition-all duration-500 cursor-pointer hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+                  <SmoothIcon className={cn(
+                    "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center mx-auto mb-3 shadow-md text-white",
                     gradients[i % gradients.length]
                   )}>
                     {getCategoryIcon(cat.icon)}
-                  </div>
-                  <h3 className="font-medium text-xs mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                  </SmoothIcon>
+                  <h3 className="font-medium text-xs mb-1 group-hover:text-primary transition-colors duration-300 line-clamp-1">
                     {cat.name}
                   </h3>
                   <p className="text-[10px] text-muted-foreground">{cat.medicineCount} ta</p>
                 </div>
               </Link>
-            </motion.div>
+            </SmoothCard>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div {...fadeInUp} className="text-center mt-8">
+        <motion.div {...smoothFadeUp} className="text-center mt-8">
           <Link href="/medicines">
             <Button variant="outline" size="sm">
-              Barcha kategoriyalar ({categories.length})
+              {t("common.viewAll")} ({categories.length})
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
@@ -582,13 +598,13 @@ function CategoriesSection({ t }: { t: (path: string) => string }) {
       </div>
     </section>
   );
-}
+});
 
-function FeaturedPharmacies({ t }: { t: (path: string) => string }) {
+const FeaturedPharmacies = memo(function FeaturedPharmacies({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative bg-gradient-to-b from-transparent via-muted/20 to-transparent">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="flex items-center justify-between mb-12">
+        <motion.div {...smoothFadeUp} className="flex items-center justify-between mb-12">
           <div>
             <Badge variant="primary" className="mb-4">{t("pharmacies.title")}</Badge>
             <h2 className="heading-lg mb-2">
@@ -604,28 +620,19 @@ function FeaturedPharmacies({ t }: { t: (path: string) => string }) {
           </Link>
         </motion.div>
 
-        <motion.div
-          {...staggerContainer}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {pharmacies.slice(0, 4).map((pharmacy, i) => (
-            <motion.div
-              key={pharmacy.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
+            <SmoothCard key={pharmacy.id} delay={i * 0.1}>
               <Link href={`/pharmacies?id=${pharmacy.id}`}>
-                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full cursor-pointer hover:-translate-y-1 border border-white/20">
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
+                  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <div className="p-6 relative">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                      <SmoothIcon className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/20">
                         <img src={pharmacy.logo} alt="" className="w-8 h-8" />
-                      </div>
+                      </SmoothIcon>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+                        <h3 className="font-semibold truncate group-hover:text-primary transition-colors duration-300">
                           {pharmacy.name}
                         </h3>
                         <div className="flex items-center gap-1 mt-0.5">
@@ -655,29 +662,29 @@ function FeaturedPharmacies({ t }: { t: (path: string) => string }) {
 
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm" className="flex-1 group/btn text-xs">
-                        Ko'rish
-                        <ChevronRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+                        {t("common.viewAll")}
+                        <ChevronRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-1 transition-transform duration-300" />
                       </Button>
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300">
                         <MapPin className="w-4 h-4" />
                       </div>
                     </div>
                   </div>
                 </Card>
               </Link>
-            </motion.div>
+            </SmoothCard>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
-}
+});
 
-function PopularMedicines({ t }: { t: (path: string) => string }) {
+const PopularMedicines = memo(function PopularMedicines({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="flex items-center justify-between mb-12">
+        <motion.div {...smoothFadeUp} className="flex items-center justify-between mb-12">
           <div>
             <Badge variant="primary" className="mb-4">{t("medicines.title")}</Badge>
             <h2 className="heading-lg mb-2">
@@ -695,15 +702,9 @@ function PopularMedicines({ t }: { t: (path: string) => string }) {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {medicines.slice(0, 8).map((med, i) => (
-            <motion.div
-              key={med.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <SmoothCard key={med.id} delay={i * 0.05}>
               <Link href={`/medicines/${med.slug}`}>
-                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full cursor-pointer hover:-translate-y-1 border border-white/20">
+                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
                   <div className="absolute top-3 right-3 z-10">
                     {med.discount && (
                       <Badge variant="destructive" className="text-xs shadow-lg">
@@ -712,11 +713,11 @@ function PopularMedicines({ t }: { t: (path: string) => string }) {
                     )}
                   </div>
                   <div className="p-5">
-                    <div className="w-full h-32 rounded-xl bg-gradient-to-br from-primary/5 to-blue-50 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+                    <div className="w-full h-32 rounded-xl bg-gradient-to-br from-primary/5 to-blue-50 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-500 overflow-hidden">
                       <img src={med.image} alt="" className="w-full h-full object-cover" />
                     </div>
                     <Badge variant="secondary" className="mb-2 text-[10px]">{med.category}</Badge>
-                    <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                    <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors duration-300 line-clamp-1">
                       {med.name}
                     </h3>
                     <p className="text-xs text-muted-foreground mb-1">{med.manufacturer}</p>
@@ -739,43 +740,37 @@ function PopularMedicines({ t }: { t: (path: string) => string }) {
                   </div>
                 </Card>
               </Link>
-            </motion.div>
+            </SmoothCard>
           ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
-function DoctorsSection({ t }: { t: (path: string) => string }) {
+const DoctorsSection = memo(function DoctorsSection({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative bg-gradient-to-b from-transparent via-primary/5 to-transparent">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="text-center mb-12">
-          <Badge variant="primary" className="mb-4">{t("consultation.title") || "Shifokorlar"}</Badge>
+        <motion.div {...smoothFadeUp} className="text-center mb-12">
+          <Badge variant="primary" className="mb-4">{t("consultation.title")}</Badge>
           <h2 className="heading-lg mb-4">
-            Bizning <span className="text-gradient">mutaxassislarimiz</span>
+            {t("doctorSection.subtitle")}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            60+ yillik tajribaga ega malakali shifokorlar bilan onlayn maslahat oling
+            {t("doctorSection.desc")}
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors.map((doctor, i) => (
-            <motion.div
-              key={doctor.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
+            <SmoothCard key={doctor.id} delay={i * 0.1}>
               <Link href={`/consultation?doctor=${doctor.id}`}>
-                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full cursor-pointer hover:-translate-y-1 border border-white/20">
+                <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
                   <div className="p-6">
                     <div className="flex items-start gap-4">
                       <div className="relative">
-                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-blue-50 group-hover:scale-105 transition-transform">
+                        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-blue-50 group-hover:scale-105 transition-transform duration-500">
                           <img src={doctor.photo} alt="" className="w-full h-full object-cover" />
                         </div>
                         {doctor.isAvailableToday && (
@@ -785,7 +780,7 @@ function DoctorsSection({ t }: { t: (path: string) => string }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold group-hover:text-primary transition-colors">
+                        <h3 className="font-semibold group-hover:text-primary transition-colors duration-300">
                           {doctor.name}
                         </h3>
                         <p className="text-sm text-primary">{doctor.specialty}</p>
@@ -800,7 +795,7 @@ function DoctorsSection({ t }: { t: (path: string) => string }) {
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4" />
-                        <span>{doctor.experience} yillik tajriba</span>
+                        <span>{doctor.experience} {t("doctorSection.experience")}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <GraduationCap className="w-4 h-4" />
@@ -811,12 +806,12 @@ function DoctorsSection({ t }: { t: (path: string) => string }) {
                     <div className="flex items-center gap-2 mt-4">
                       {doctor.availableForVideo && (
                         <Badge variant="secondary" className="text-[10px]">
-                          <Video className="w-3 h-3 mr-1" /> Video
+                          <Video className="w-3 h-3 mr-1" /> {t("consultation.videoConsult")}
                         </Badge>
                       )}
                       {doctor.availableForChat && (
                         <Badge variant="secondary" className="text-[10px]">
-                          <MessageSquareText className="w-3 h-3 mr-1" /> Chat
+                          <MessageSquareText className="w-3 h-3 mr-1" /> {t("consultation.chatConsult")}
                         </Badge>
                       )}
                     </div>
@@ -826,65 +821,35 @@ function DoctorsSection({ t }: { t: (path: string) => string }) {
                         {formatPrice(doctor.consultationFee)}
                       </span>
                       <Button variant="outline" size="sm" className="group/btn">
-                        Band qilish
-                        <ArrowRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+                        {t("doctorSection.book")}
+                        <ArrowRight className="w-3 h-3 ml-1 group-hover/btn:translate-x-1 transition-transform duration-300" />
                       </Button>
                     </div>
                   </div>
                 </Card>
               </Link>
-            </motion.div>
+            </SmoothCard>
           ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
-function WhyChooseUs({ t }: { t: (path: string) => string }) {
+const WhyChooseUs = memo(function WhyChooseUs({ t }: { t: (path: string) => string }) {
   const features = [
-    {
-      icon: TrendingUp,
-      title: "Narx solishtirish",
-      desc: "152+ dorixonada narxlarni solishtiring va eng arzonini toping",
-      gradient: "from-emerald-500 to-green-600",
-    },
-    {
-      icon: Truck,
-      title: "Tezkor yetkazish",
-      desc: "30 daqiqada bepul yetkazib berish xizmati",
-      gradient: "from-blue-500 to-indigo-600",
-    },
-    {
-      icon: Shield,
-      title: "100% haqiqiy",
-      desc: "Faqat sertifikatlangan va haqiqiy dorilar",
-      gradient: "from-purple-500 to-pink-600",
-    },
-    {
-      icon: Clock,
-      title: "24/7 xizmat",
-      desc: "Kunduzi va kechasi biz bilan bog'laning",
-      gradient: "from-orange-500 to-red-600",
-    },
-    {
-      icon: Bot,
-      title: "AI yordamchi",
-      desc: "Sun'iy intellekt yordamida dori topish",
-      gradient: "from-rose-500 to-pink-600",
-    },
-    {
-      icon: Stethoscope,
-      title: "Onlayn maslahat",
-      desc: "Malakali shifokorlar bilan video maslahat",
-      gradient: "from-cyan-500 to-blue-600",
-    },
+    { icon: TrendingUp, titleKey: "whyChooseUs.priceComparison.title", descKey: "whyChooseUs.priceComparison.desc", gradient: "from-emerald-500 to-green-600" },
+    { icon: Truck, titleKey: "whyChooseUs.freeDelivery.title", descKey: "whyChooseUs.freeDelivery.desc", gradient: "from-blue-500 to-indigo-600" },
+    { icon: Shield, titleKey: "whyChooseUs.authentic.title", descKey: "whyChooseUs.authentic.desc", gradient: "from-purple-500 to-pink-600" },
+    { icon: Clock, titleKey: "whyChooseUs.service247.title", descKey: "whyChooseUs.service247.desc", gradient: "from-orange-500 to-red-600" },
+    { icon: Bot, titleKey: "whyChooseUs.aiAssistant.title", descKey: "whyChooseUs.aiAssistant.desc", gradient: "from-rose-500 to-pink-600" },
+    { icon: Stethoscope, titleKey: "whyChooseUs.onlineConsult.title", descKey: "whyChooseUs.onlineConsult.desc", gradient: "from-cyan-500 to-blue-600" },
   ];
 
   return (
     <section className="section-padding relative">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="text-center mb-12">
+        <motion.div {...smoothFadeUp} className="text-center mb-12">
           <Badge variant="primary" className="mb-4">{t("whyChooseUs.title")}</Badge>
           <h2 className="heading-lg mb-4">
             {t("whyChooseUs.subtitle")}
@@ -896,39 +861,33 @@ function WhyChooseUs({ t }: { t: (path: string) => string }) {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full cursor-pointer hover:-translate-y-1 border border-white/20">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <SmoothCard key={i} delay={i * 0.1}>
+              <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative">
-                  <div className={cn(
-                    "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg text-white",
+                  <SmoothIcon className={cn(
+                    "w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-4 shadow-lg text-white",
                     feature.gradient
                   )}>
                     <feature.icon className="w-7 h-7" />
-                  </div>
-                  <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  </SmoothIcon>
+                  <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors duration-300">{t(feature.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{t(feature.descKey)}</p>
                 </div>
               </Card>
-            </motion.div>
+            </SmoothCard>
           ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
-function TestimonialsSection({ t }: { t: (path: string) => string }) {
+const TestimonialsSection = memo(function TestimonialsSection({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative bg-gradient-to-b from-transparent via-muted/20 to-transparent">
       <div className="container-custom">
-        <motion.div {...fadeInUp} className="text-center mb-12">
+        <motion.div {...smoothFadeUp} className="text-center mb-12">
           <Badge variant="primary" className="mb-4">{t("testimonials.title")}</Badge>
           <h2 className="heading-lg mb-4">
             {t("testimonials.subtitle")}
@@ -938,19 +897,10 @@ function TestimonialsSection({ t }: { t: (path: string) => string }) {
           </p>
         </motion.div>
 
-        <motion.div
-          {...staggerContainer}
-          className="grid md:grid-cols-2 gap-6"
-        >
+        <div className="grid md:grid-cols-2 gap-6">
           {testimonials.map((testimonial, i) => (
-            <motion.div
-              key={testimonial.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-            >
-              <Card className="relative p-6 group hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 h-full border border-white/20">
+            <SmoothCard key={testimonial.id} delay={i * 0.1}>
+              <Card className="relative p-6 group hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full border border-white/20">
                 <div className="absolute top-4 right-4 text-primary/10">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151C7.563 6.068 6 8.789 6 11h4v10H0z"/>
@@ -984,77 +934,71 @@ function TestimonialsSection({ t }: { t: (path: string) => string }) {
                   </div>
                 </div>
               </Card>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks({ t }: { t: (path: string) => string }) {
-  const steps = [
-    { icon: Search, title: "Dorini toping", desc: "Kerakli dorini qidirib, narxlarni solishtiring" },
-    { icon: CheckCircle2, title: "Buyurtma bering", desc: "Eng yaxshi variantni tanlab, savatga qo'shing" },
-    { icon: Truck, title: "Yetkazish", desc: "30 daqiqada eshigingizgacha yetkaziladi" },
-    { icon: Heart, title: "Sog'liqni saqlang", desc: "Dorini qabul qilib, salomatligingizni mustahkamlang" },
-  ];
-
-  return (
-    <section className="section-padding relative">
-      <div className="container-custom">
-        <motion.div {...fadeInUp} className="text-center mb-12">
-          <Badge variant="primary" className="mb-4">Qanday ishlaydi?</Badge>
-          <h2 className="heading-lg mb-4">
-            Oddiy <span className="text-gradient">4 qadam</span>
-          </h2>
-        </motion.div>
-
-        <div className="grid md:grid-cols-4 gap-6 relative">
-          {/* Connection line */}
-          <div className="absolute top-12 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 hidden md:block" />
-
-          {steps.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.15 }}
-              className="text-center relative"
-            >
-              <div className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/20">
-                <step.icon className="w-10 h-10 text-white" />
-                <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white dark:bg-card border-2 border-primary flex items-center justify-center text-sm font-bold text-primary shadow-lg">
-                  {i + 1}
-                </div>
-              </div>
-              <h3 className="font-semibold mb-2">{step.title}</h3>
-              <p className="text-sm text-muted-foreground">{step.desc}</p>
-            </motion.div>
+            </SmoothCard>
           ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
-function FAQSection({ t, tArray }: { t: (path: string) => string; tArray: (path: string) => any[] }) {
+const HowItWorks = memo(function HowItWorks({ t }: { t: (path: string, params?: Record<string, string | number>) => string }) {
+  const steps = [
+    { icon: Search, titleKey: "howItWorks.step1.title", descKey: "howItWorks.step1.desc" },
+    { icon: CheckCircle2, titleKey: "howItWorks.step2.title", descKey: "howItWorks.step2.desc" },
+    { icon: Truck, titleKey: "howItWorks.step3.title", descKey: "howItWorks.step3.desc" },
+    { icon: Heart, titleKey: "howItWorks.step4.title", descKey: "howItWorks.step4.desc" },
+  ];
+
+  return (
+    <section className="section-padding relative">
+      <div className="container-custom">
+        <motion.div {...smoothFadeUp} className="text-center mb-12">
+          <Badge variant="primary" className="mb-4">{t("howItWorks.title")}</Badge>
+          <h2 className="heading-lg mb-4">
+            {t("howItWorks.subtitle", { count: 4 })}
+          </h2>
+        </motion.div>
+
+        <div className="grid md:grid-cols-4 gap-6 relative">
+          <div className="absolute top-12 left-[12%] right-[12%] h-0.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20 hidden md:block" />
+
+          {steps.map((step, i) => (
+            <SmoothCard key={i} delay={i * 0.15}>
+              <div className="text-center relative">
+                <SmoothIcon className="relative z-10 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary/20">
+                  <step.icon className="w-10 h-10 text-white" />
+                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white dark:bg-card border-2 border-primary flex items-center justify-center text-sm font-bold text-primary shadow-lg">
+                    {i + 1}
+                  </div>
+                </SmoothIcon>
+                <h3 className="font-semibold mb-2">{t(step.titleKey)}</h3>
+                <p className="text-sm text-muted-foreground">{t(step.descKey)}</p>
+              </div>
+            </SmoothCard>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+});
+
+const FAQSection = memo(function FAQSection({ t, tArray }: { t: (path: string) => string; tArray: (path: string) => any[] }) {
   return (
     <section className="section-padding relative bg-gradient-to-b from-transparent via-muted/20 to-transparent">
       <div className="container-custom">
         <div className="max-w-3xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-12">
+          <motion.div {...smoothFadeUp} className="text-center mb-12">
             <Badge variant="primary" className="mb-4">FAQ</Badge>
             <h2 className="heading-lg mb-4">
-              Ko'p so'raladigan <span className="text-gradient">savollar</span>
+              {t("faqSection.title")}
             </h2>
             <p className="text-muted-foreground">
-              Platformamiz haqida bilishingiz kerak bo'lgan hamma narsa
+              {t("faqSection.desc")}
             </p>
           </motion.div>
 
-          <motion.div {...fadeInUp}>
+          <motion.div {...smoothFadeUp}>
             <Accordion type="single" collapsible className="space-y-3">
               {tArray("faq").map((faq: { question: string; answer: string }, i: number) => (
                 <AccordionItem
@@ -1062,7 +1006,7 @@ function FAQSection({ t, tArray }: { t: (path: string) => string; tArray: (path:
                   value={`faq-${i}`}
                   className="bg-white/60 dark:bg-card/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/20 px-6"
                 >
-                  <AccordionTrigger className="py-4 text-sm font-medium hover:text-primary transition-colors">
+                  <AccordionTrigger className="py-4 text-sm font-medium hover:text-primary transition-colors duration-300">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="pb-4 text-sm text-muted-foreground leading-relaxed">
@@ -1076,9 +1020,9 @@ function FAQSection({ t, tArray }: { t: (path: string) => string; tArray: (path:
       </div>
     </section>
   );
-}
+});
 
-function PartnerLogos() {
+const PartnerLogos = memo(function PartnerLogos({ t }: { t: (path: string) => string }) {
   const partners = [
     "Farmstandart", "Bayer", "Novartis", "Sanofi", "Pfizer",
     "GSK", "Cipla", "Teva", "Abdi Ibrahim", "R-pharm",
@@ -1088,28 +1032,37 @@ function PartnerLogos() {
     <section className="py-12 border-y border-border/50">
       <div className="container-custom">
         <p className="text-center text-sm text-muted-foreground mb-8">
-          Ishtirokchi farmatsevtik kompaniyalar
+          {t("partners.title")}
         </p>
         <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap opacity-50">
           {partners.map((partner, i) => (
-            <div key={i} className="text-lg font-bold text-muted-foreground/50 hover:text-muted-foreground transition-colors cursor-default">
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ ...spring, delay: i * 0.05 }}
+              whileHover={{ scale: 1.1, opacity: 1, transition: gentleSpring }}
+              className="text-lg font-bold text-muted-foreground/50 cursor-default"
+            >
               {partner}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
   );
-}
+});
 
-function CTASection({ t }: { t: (path: string) => string }) {
+const CTASection = memo(function CTASection({ t }: { t: (path: string) => string }) {
   return (
     <section className="section-padding relative">
       <div className="container-custom">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={{ opacity: 0, y: 40, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ ...spring, duration: 1 }}
           className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-blue-600 to-purple-700 px-8 py-16 md:px-16 md:py-20 text-center"
         >
           <div className="absolute inset-0 bg-grid-pattern opacity-10" />
@@ -1117,24 +1070,24 @@ function CTASection({ t }: { t: (path: string) => string }) {
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
             className="absolute top-10 right-10 w-32 h-32 border border-white/10 rounded-full"
           />
           <motion.div
             animate={{ rotate: -360 }}
-            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
             className="absolute bottom-10 left-10 w-24 h-24 border border-white/10 rounded-full"
           />
 
           <div className="relative">
             <Badge variant="secondary" className="mb-6 bg-white/20 text-white border-white/20 hover:bg-white/30">
-              Hoziroq boshlang
+              {t("cta.badge")}
             </Badge>
             <h2 className="heading-lg text-white mb-4">
-              Sog'ligingiz uchun <br />eng yaxshi yechim
+              {t("cta.title")}
             </h2>
             <p className="text-white/80 max-w-lg mx-auto mb-8 text-lg">
-              30,000+ dori, 152+ dorixona, 60+ shifokor — bitta platformada
+              {t("cta.desc")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/auth/register">
@@ -1142,7 +1095,7 @@ function CTASection({ t }: { t: (path: string) => string }) {
                   size="lg"
                   className="bg-white text-primary hover:bg-white/90 shadow-xl shadow-black/20 w-full sm:w-auto"
                 >
-                  Bepul ro'yxatdan o'tish
+                  {t("cta.register")}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -1152,7 +1105,7 @@ function CTASection({ t }: { t: (path: string) => string }) {
                   size="lg"
                   className="border-white/30 text-white hover:bg-white/10 w-full sm:w-auto"
                 >
-                  Dorilarni ko'rish
+                  {t("cta.viewMedicines")}
                 </Button>
               </Link>
             </div>
@@ -1161,4 +1114,4 @@ function CTASection({ t }: { t: (path: string) => string }) {
       </div>
     </section>
   );
-}
+});

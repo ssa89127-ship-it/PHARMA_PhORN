@@ -17,14 +17,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PrescriptionsSection } from "@/components/shared/prescriptions-section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
-};
+const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
 
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+const fadeUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-50px" },
+  transition: { ...spring, duration: 0.6 },
 };
 
 const steps: { icon: React.ElementType; key: string }[] = [
@@ -38,8 +37,8 @@ export default function RetseptPage() {
   const { t } = useLanguage();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-10">
-        <motion.div variants={fadeUp} className="mx-auto max-w-2xl text-center">
+      <div className="space-y-10">
+        <motion.div {...fadeUp} className="mx-auto max-w-2xl text-center">
           <Badge variant="secondary" className="mb-4 gap-1">
             <ShieldCheck className="h-3 w-3" />
             {t("prescriptions.subtitle")}
@@ -48,31 +47,50 @@ export default function RetseptPage() {
           <p className="mt-3 text-muted-foreground">{t("prescriptions.subtitle")}</p>
         </motion.div>
 
-        <motion.div variants={fadeUp}>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ ...spring, delay: 0.1, duration: 0.7 }}
+        >
           <PrescriptionsSection />
         </motion.div>
 
-        <motion.div variants={fadeUp}>
+        <motion.div {...fadeUp}>
           <h2 className="mb-4 text-center text-lg font-semibold">{t("prescriptions.howTitle")}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((step, i) => (
-              <Card key={step.key}>
-                <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <step.icon className="h-6 w-6" />
-                  </div>
-                  <p className="text-sm font-medium">{t(step.key)}</p>
-                  {i < steps.length - 1 && (
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/40" />
-                  )}
-                </CardContent>
-              </Card>
+              <motion.div
+                key={step.key}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ ...spring, delay: i * 0.1 }}
+              >
+                <Card className="hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
+                  <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <step.icon className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-medium">{t(step.key)}</p>
+                    {i < steps.length - 1 && (
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/40 hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2" />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="text-center">
-          <Card className="mx-auto max-w-xl">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ ...spring, delay: 0.2 }}
+          className="text-center"
+        >
+          <Card className="mx-auto max-w-xl hover:shadow-lg transition-shadow duration-300">
             <CardContent className="flex flex-col items-center gap-3 p-8">
               <CheckCircle2 className="h-10 w-10 text-primary" />
               <h3 className="font-semibold">{t("prescriptions.verificationHint")}</h3>
@@ -86,7 +104,7 @@ export default function RetseptPage() {
             </CardContent>
           </Card>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
   );
 }
