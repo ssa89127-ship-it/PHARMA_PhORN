@@ -36,6 +36,17 @@ const navItems = [
   { key: "prescriptions", href: "/retsept" },
 ];
 
+const moreItems = [
+  { key: "interactions", href: "/interactions" },
+  { key: "reminders", href: "/reminders" },
+  { key: "priceAlerts", href: "/price-alerts" },
+  { key: "family", href: "/family" },
+  { key: "referral", href: "/referral" },
+  { key: "loyalty", href: "/loyalty" },
+  { key: "health", href: "/health-records" },
+  { key: "notifications", href: "/notifications" },
+];
+
 export function Navbar() {
   const { t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -102,6 +113,30 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+            <div className="relative group">
+              <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-all duration-200">
+                {t("nav.more") || "Ko'proq"}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <div className="absolute top-full left-0 mt-1 w-56 bg-card rounded-xl shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="p-2">
+                  {moreItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "block px-3 py-2 text-sm rounded-lg transition-colors",
+                        pathname === item.href
+                          ? "text-primary bg-primary/5"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      {t(`nav.${item.key}`)}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -181,6 +216,31 @@ export function Navbar() {
                   </Link>
                 </motion.div>
               ))}
+              <div className="pt-2 border-t border-border/50">
+                <p className="px-4 py-1 text-xs font-medium text-muted-foreground uppercase">
+                  {t("nav.more") || "Ko'proq"}
+                </p>
+                {moreItems.map((item, i) => (
+                  <motion.div
+                    key={item.href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: (navLinks.length + i) * 0.05 }}
+                  >
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "block px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+                        pathname === item.href
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/5"
+                      )}
+                    >
+                      {t(`nav.${item.key}`)}
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
               <div className="pt-2 border-t border-border/50 grid grid-cols-2 gap-2">
                 <Link href="/dashboard/patient">
                   <Button variant="outline" size="sm" className="w-full">

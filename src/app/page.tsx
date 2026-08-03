@@ -55,12 +55,12 @@ import {
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import {
-  pharmacies,
-  medicines,
-  categories,
-  testimonials,
-  doctors,
-} from "@/lib/data";
+  homepageDoctors as doctors,
+  homepageTestimonials as testimonials,
+  homepageCategories as categories,
+  getHomepageMedicines,
+  getHomepagePharmacies,
+} from "@/lib/home-data";
 
 const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
 const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
@@ -147,6 +147,8 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
   const opacity = useTransform(scrollY, [0, 400], [1, 0]);
   const scale = useTransform(scrollY, [0, 400], [1, 0.92]);
   const springY = useSpring(y, { stiffness: 50, damping: 20 });
+  const [heroMeds, setHeroMeds] = useState<any[]>([]);
+  useEffect(() => { getHomepageMedicines().then(setHeroMeds); }, []);
 
   return (
     <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
@@ -329,7 +331,7 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
                 </div>
 
                 <div className="space-y-3">
-                  {medicines.slice(0, 4).map((med, i) => (
+                  {heroMeds.slice(0, 4).map((med, i) => (
                     <motion.div
                       key={med.id}
                       initial={{ opacity: 0, x: 30 }}
@@ -601,6 +603,8 @@ const CategoriesSection = memo(function CategoriesSection({ t }: { t: (path: str
 });
 
 const FeaturedPharmacies = memo(function FeaturedPharmacies({ t }: { t: (path: string) => string }) {
+  const [pharmacyList, setPharmacyList] = useState<any[]>([]);
+  useEffect(() => { getHomepagePharmacies().then(setPharmacyList); }, []);
   return (
     <section className="section-padding relative bg-gradient-to-b from-transparent via-muted/20 to-transparent">
       <div className="container-custom">
@@ -621,7 +625,7 @@ const FeaturedPharmacies = memo(function FeaturedPharmacies({ t }: { t: (path: s
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {pharmacies.slice(0, 4).map((pharmacy, i) => (
+          {pharmacyList.slice(0, 4).map((pharmacy, i) => (
             <SmoothCard key={pharmacy.id} delay={i * 0.1}>
               <Link href={`/pharmacies?id=${pharmacy.id}`}>
                 <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
@@ -681,6 +685,8 @@ const FeaturedPharmacies = memo(function FeaturedPharmacies({ t }: { t: (path: s
 });
 
 const PopularMedicines = memo(function PopularMedicines({ t }: { t: (path: string) => string }) {
+  const [medicineList, setMedicineList] = useState<any[]>([]);
+  useEffect(() => { getHomepageMedicines().then(setMedicineList); }, []);
   return (
     <section className="section-padding relative">
       <div className="container-custom">
@@ -701,7 +707,7 @@ const PopularMedicines = memo(function PopularMedicines({ t }: { t: (path: strin
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {medicines.slice(0, 8).map((med, i) => (
+          {medicineList.slice(0, 8).map((med, i) => (
             <SmoothCard key={med.id} delay={i * 0.05}>
               <Link href={`/medicines/${med.slug}`}>
                 <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
