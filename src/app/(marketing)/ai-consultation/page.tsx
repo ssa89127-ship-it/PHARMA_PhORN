@@ -216,7 +216,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                 </div>
                 <div>
                   <h3 className="text-white font-semibold">{t("chatbot.title")}</h3>
-                  <p className="text-white/70 text-xs">PharmaHub AI • {t("aiConsult.status")}</p>
+                  <p className="text-white/70 text-xs">VitaHub AI • {t("aiConsult.status")}</p>
                 </div>
               </div>
 

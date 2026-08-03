@@ -54,7 +54,7 @@ export default function RegisterPage() {
           <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-6">
             <Pill className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-4">Join PharmaHub</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">Join VitaHub</h2>
           <p className="text-white/80 text-lg leading-relaxed">
             Create your account and start ordering medicines, consulting doctors, and managing your health all in one place.
           </p>

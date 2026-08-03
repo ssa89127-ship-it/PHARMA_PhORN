@@ -115,7 +115,7 @@ export function Footer() {
 
         <div className="py-6 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} PharmaHub. {t("footer.rights")}
+            &copy; {new Date().getFullYear()} VitaHub. {t("footer.rights")}
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-muted-foreground flex items-center gap-1">

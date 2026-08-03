@@ -1,5 +1,5 @@
 /**
- * PharmaHub AI yordamchi — data-driven offline assistant.
+ * VitaHub AI yordamchi — data-driven offline assistant.
  * Searches real medicine catalog and answers symptom questions
  * in Uzbek, Russian and English.
  */
@@ -153,7 +153,7 @@ type LangStrings = {
 
 const strings: Record<Lang, LangStrings> = {
   uz: {
-    welcome: "Assalomu alaykum! PharmaHub AI yordamchisiga xush kelibsiz. Dori nomi, simptom yoki kasallik nomini yozing — men sizga real dorixonalardagi dorilar va narxlarni topib beraman.",
+    welcome: "Assalomu alaykum! VitaHub AI yordamchisiga xush kelibsiz. Dori nomi, simptom yoki kasallik nomini yozing — men sizga real dorixonalardagi dorilar va narxlarni topib beraman.",
     greeting: "Salom! Qanday yordam bera olaman? Masalan: \"bosh og'rig'iga nima ichsam?\" yoki \"vitamin C narxi\" deb yozing.",
     thanks: "Arzimaydi! Yana savolingiz bo'lsa yozing. Sog' bo'ling!",
     medicineFound: (n: number) =>
@@ -166,7 +166,7 @@ const strings: Record<Lang, LangStrings> = {
     actions: ["Dori qidirish", "Bosh og'rig'i", "Isitma", "Vitaminlar"],
   },
   ru: {
-    welcome: "Здравствуйте! Добро пожаловать в AI-помощник PharmaHub. Напишите название лекарства, симптом или болезнь — я найду реальные препараты и цены в аптеках.",
+    welcome: "Здравствуйте! Добро пожаловать в AI-помощник VitaHub. Напишите название лекарства, симптом или болезнь — я найду реальные препараты и цены в аптеках.",
     greeting: "Здравствуйте! Чем могу помочь? Например: «что выпить от головной боли?» или «цена витамина C».",
     thanks: "Пожалуйста! Обращайтесь, если будут вопросы. Будьте здоровы!",
     medicineFound: (n: number) =>
@@ -179,7 +179,7 @@ const strings: Record<Lang, LangStrings> = {
     actions: ["Найти лекарство", "Головная боль", "Температура", "Витамины"],
   },
   en: {
-    welcome: "Hello! Welcome to the PharmaHub AI assistant. Type a medicine name, symptom, or condition — I'll find real medicines and pharmacy prices for you.",
+    welcome: "Hello! Welcome to the VitaHub AI assistant. Type a medicine name, symptom, or condition — I'll find real medicines and pharmacy prices for you.",
     greeting: "Hi! How can I help? Try: \"what should I take for a headache?\" or \"vitamin C price\".",
     thanks: "You're welcome! Feel free to ask anytime. Stay healthy!",
     medicineFound: (n: number) =>

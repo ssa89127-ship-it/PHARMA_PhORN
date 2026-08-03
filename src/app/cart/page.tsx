@@ -31,9 +31,11 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
 import { cn, formatPrice } from "@/lib/utils";
-import { savedAddresses, paymentMethods } from "@/lib/data";
+import { savedAddresses } from "@/lib/data";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useCart } from "@/store/cart";
+import { PaymentSelector } from "@/components/payment/payment-selector";
+import type { PaymentProvider } from "@/lib/payments";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -66,9 +68,7 @@ export default function CartPage() {
   const [selectedAddress, setSelectedAddress] = useState<string>(
     savedAddresses.find((a) => a.isDefault)?.id ?? ""
   );
-  const [selectedPayment, setSelectedPayment] = useState<string>(
-    paymentMethods.find((p) => p.isDefault)?.id ?? ""
-  );
+  const [selectedPayment, setSelectedPayment] = useState<PaymentProvider | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
@@ -86,11 +86,11 @@ export default function CartPage() {
       return;
     }
     setIsPlacingOrder(true);
+    // Simulate payment processing
     setTimeout(() => {
       setIsPlacingOrder(false);
-      toast.success(t("cart.orderPlaced"), {
-        description: "Your order has been confirmed and will be delivered soon.",
-      });
+      // Redirect to payment result page
+      window.location.href = `/payment/result?status=success&orderId=ORD-${Date.now().toString(36).toUpperCase()}&amount=${total}&provider=${selectedPayment}`;
     }, 1500);
   };
 
@@ -344,47 +344,14 @@ export default function CartPage() {
               >
                 <h2 className="font-semibold text-base mb-4 flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-primary" />
-                  Payment Method
+                  {t("payment.method")}
                 </h2>
 
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {paymentMethods.map((method) => (
-                    <button
-                      key={method.id}
-                      onClick={() => setSelectedPayment(method.id)}
-                      className={cn(
-                        "relative rounded-xl border p-4 text-left transition-all duration-200",
-                        selectedPayment === method.id
-                          ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
-                          : "border-border bg-card/50 hover:border-primary/30 hover:bg-muted/30"
-                      )}
-                    >
-                      {selectedPayment === method.id && (
-                        <div className="absolute top-3 right-3">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center border border-border">
-                          <CreditCard className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {method.type} ending in {method.lastFour}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Expires {method.expiryDate}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-
-                  <button className="rounded-xl border border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/30 hover:text-primary transition-all duration-200 min-h-[100px]">
-                    <Plus className="w-5 h-5" />
-                    <span className="text-xs font-medium">Add new payment</span>
-                  </button>
-                </div>
+                <PaymentSelector
+                  amount={total}
+                  selectedProvider={selectedPayment}
+                  onSelect={(provider) => setSelectedPayment(provider)}
+                />
               </motion.div>
             </div>
 

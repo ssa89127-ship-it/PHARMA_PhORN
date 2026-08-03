@@ -166,7 +166,7 @@ export const homepageTestimonials: Testimonial[] = [
     id: "t-1",
     name: "Aziza Karimova",
     role: "Bemor",
-    content: "PharmaHub orqali dori topish juda oson bo'ldi. Narxlarni solishtirib, arzonini topdim va 30 daqiqada yetkazib berishdi!",
+    content: "VitaHub orqali dori topish juda oson bo'ldi. Narxlarni solishtirib, arzonini topdim va 30 daqiqada yetkazib berishdi!",
     rating: 5,
     photo: "/images/testimonial-1.svg",
   },

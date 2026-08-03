@@ -2,7 +2,7 @@ export function StructuredData() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "PharmaHub",
+    name: "VitaHub",
     url: "https://pharma-ph-orn-pe1d.vercel.app",
     applicationCategory: "HealthApplication",
     operatingSystem: "Web",
@@ -32,7 +32,7 @@ export function StructuredData() {
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "PharmaHub",
+    name: "VitaHub",
     url: "https://pharma-ph-orn-pe1d.vercel.app",
     logo: "https://pharma-ph-orn-pe1d.vercel.app/logo.png",
     sameAs: [],

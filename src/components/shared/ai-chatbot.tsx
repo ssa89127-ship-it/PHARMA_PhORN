@@ -114,7 +114,7 @@ export function AIChatbot() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold text-sm">{t("chatbot.title")}</h3>
-                    <p className="text-white/70 text-xs">PharmaHub AI</p>
+                    <p className="text-white/70 text-xs">VitaHub AI</p>
                   </div>
                 </div>
                 <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">

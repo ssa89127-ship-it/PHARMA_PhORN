@@ -65,7 +65,7 @@ export default function LoginPage() {
             <Pill className="w-12 h-12 text-white" />
           </motion.div>
 
-          <h1 className="text-5xl font-bold text-white mb-4">PharmaHub</h1>
+          <h1 className="text-5xl font-bold text-white mb-4">VitaHub</h1>
           <p className="text-xl text-white/80 leading-relaxed">
             Your trusted pharmacy platform. Order medicines, consult doctors, and manage your health all in one place.
           </p>
@@ -98,7 +98,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
               <Pill className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gradient">PharmaHub</span>
+            <span className="text-xl font-bold text-gradient">VitaHub</span>
           </div>
 
           <div className="glass-card rounded-3xl p-8 md:p-10">

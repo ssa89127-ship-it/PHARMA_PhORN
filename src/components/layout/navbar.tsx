@@ -45,6 +45,7 @@ const moreItems = [
   { key: "loyalty", href: "/loyalty" },
   { key: "health", href: "/health-records" },
   { key: "notifications", href: "/notifications" },
+  { key: "paymentHistory", href: "/payment/history" },
 ];
 
 export function Navbar() {

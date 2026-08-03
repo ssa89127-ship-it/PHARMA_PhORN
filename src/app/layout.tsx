@@ -19,8 +19,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "PharmaHub - Dorixona Platformasi | O'zbekiston",
-    template: "%s | PharmaHub",
+    default: "VitaHub - Dorixona Platformasi | O'zbekiston",
+    template: "%s | VitaHub",
   },
   description:
     "10,000+ dori vositalarini 152+ dorixonada solishtiring. Yetkazib berish, shifokor bilan maslahat, retsept tizimi — barchasi bir platformada. O'zbekiston bo'ylab.",
@@ -38,27 +38,27 @@ export const metadata: Metadata = {
     "Uzbekistan pharmacy",
     "Tashkent pharmacy",
   ],
-  authors: [{ name: "PharmaHub" }],
-  creator: "PharmaHub",
+  authors: [{ name: "VitaHub" }],
+  creator: "VitaHub",
   openGraph: {
     type: "website",
     locale: "uz_UZ",
     url: "https://pharma-ph-orn-pe1d.vercel.app",
-    siteName: "PharmaHub",
-    title: "PharmaHub - O'zbekiston Yetakchi Dorixona Platformasi",
+    siteName: "VitaHub",
+    title: "VitaHub - O'zbekiston Yetakchi Dorixona Platformasi",
     description: "10,000+ dori vositalari, 152+ dorixona, 30 daqiqada yetkazib berish",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "PharmaHub - Online Pharmacy Platform",
+        alt: "VitaHub - Online Pharmacy Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PharmaHub - Online Pharmacy Platform",
+    title: "VitaHub - Online Pharmacy Platform",
     description: "Compare medicine prices, order online, fast delivery",
     images: ["/og-image.png"],
   },
