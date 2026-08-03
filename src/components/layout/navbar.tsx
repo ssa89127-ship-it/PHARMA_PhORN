@@ -31,6 +31,7 @@ const navItems = [
   { key: "pharmacies", href: "/pharmacies" },
   { key: "medicines", href: "/medicines" },
   { key: "consultation", href: "/consultation" },
+  { key: "aiConsultation", href: "/ai-consultation" },
   { key: "delivery", href: "/delivery" },
   { key: "prescriptions", href: "/retsept" },
 ];
