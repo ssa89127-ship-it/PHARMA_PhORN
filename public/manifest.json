@@ -1,32 +1,24 @@
 {
-  "name": "PharmaHub - Sog'liqni saqlash platformasi",
+  "name": "PharmaHub - Dorixona Platformasi",
   "short_name": "PharmaHub",
-  "description": "Dori vositalarini solishtiring, shifokorlar bilan maslahatlashing va dorilarni uyingizga yetkazib oling",
+  "description": "10,000+ dori vositalarini solishtiring, buyurtma bering va yetkazib oling",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#059669",
   "orientation": "portrait-primary",
-  "lang": "uz",
-  "dir": "ltr",
   "categories": ["health", "medical", "pharmacy"],
+  "lang": "uz",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ],
-  "screenshots": [
     {
-      "src": "/images/screenshot-1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "PharmaHub bosh sahifa"
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ],
-  "shortcuts": [
-    { "name": "Dori qidirish", "short_name": "Qidirish", "url": "/medicines" },
-    { "name": "Dorixonalar", "short_name": "Dorixonalar", "url": "/pharmacies" },
-    { "name": "Shifokor bilan maslahat", "short_name": "Shifokor", "url": "/consultation" }
   ]
 }

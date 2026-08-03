@@ -9,6 +9,7 @@ import { CartSidebar } from "@/components/cart/cart-sidebar";
 import { AIChatbot } from "@/components/shared/ai-chatbot";
 import { CartProvider } from "@/store/cart";
 import { Toaster } from "react-hot-toast";
+import { StructuredData } from "@/components/seo/structured-data";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,18 +19,65 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "PharmaHub - Your Trusted Pharmacy Platform",
+    default: "PharmaHub - Dorixona Platformasi | O'zbekiston",
     template: "%s | PharmaHub",
   },
   description:
-    "Compare medicine prices, order online, consult with doctors, and get fast delivery from trusted pharmacies near you.",
+    "10,000+ dori vositalarini 152+ dorixonada solishtiring. Yetkazib berish, shifokor bilan maslahat, retsept tizimi — barchasi bir platformada. O'zbekiston bo'ylab.",
   keywords: [
+    "dorixona",
+    "dori vositalari",
+    "online dorixona",
+    "shifokor bilan maslahat",
+    "dori yetkazib berish",
     "pharmacy",
     "medicine",
     "online pharmacy",
     "doctor consultation",
     "medicine delivery",
+    "Uzbekistan pharmacy",
+    "Tashkent pharmacy",
   ],
+  authors: [{ name: "PharmaHub" }],
+  creator: "PharmaHub",
+  openGraph: {
+    type: "website",
+    locale: "uz_UZ",
+    url: "https://pharma-ph-orn-pe1d.vercel.app",
+    siteName: "PharmaHub",
+    title: "PharmaHub - O'zbekiston Yetakchi Dorixona Platformasi",
+    description: "10,000+ dori vositalari, 152+ dorixona, 30 daqiqada yetkazib berish",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "PharmaHub - Online Pharmacy Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PharmaHub - Online Pharmacy Platform",
+    description: "Compare medicine prices, order online, fast delivery",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -40,6 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
+        <StructuredData />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

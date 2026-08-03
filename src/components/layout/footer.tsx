@@ -15,16 +15,18 @@ const footerSections = [
   { key: "services", links: [
     { key: "medicineDelivery", href: "/delivery" },
     { key: "onlineConsultation", href: "/consultation" },
+    { key: "aiConsultation", href: "/ai-consultation" },
     { key: "pharmacyDirectory", href: "/pharmacies" },
     { key: "priceComparison", href: "/medicines" },
-    { key: "healthResources", href: "#" },
+    { key: "drugInteractions", href: "/interactions" },
   ]},
   { key: "support", links: [
     { key: "helpCenter", href: "#" },
     { key: "contactUs", href: "#" },
     { key: "privacyPolicy", href: "#" },
     { key: "termsOfService", href: "#" },
-    { key: "refundPolicy", href: "#" },
+    { key: "familyAccounts", href: "/family" },
+    { key: "loyaltyProgram", href: "/loyalty" },
   ]},
   { key: "topCategories", isCategories: true, links: [
     { key: "painRelief", href: "#" },
@@ -68,19 +70,19 @@ export function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <MapPin className="w-4 h-4 text-primary" />
                 </div>
-                <span>123 Healthcare Ave, Medical District, NY 10001</span>
+                <span>Amir Temur ko'chasi 108, Toshkent, O'zbekiston</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Phone className="w-4 h-4 text-primary" />
                 </div>
-                <span>+1 (800) 123-4567</span>
+                <span>+998 90 123-45-67</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Mail className="w-4 h-4 text-primary" />
                 </div>
-                <span>hello@pharmahub.com</span>
+                <span>info@pharmahub.uz</span>
               </div>
             </div>
           </div>
