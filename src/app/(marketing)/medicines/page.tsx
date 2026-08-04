@@ -21,6 +21,7 @@ import {
   Store,
   Award,
   Truck,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,8 +35,8 @@ import {
 } from "@/components/ui/dialog";
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { medicines, categories, medicinePrices } from "@/lib/data";
-import type { Medicine } from "@/types";
+import type { Medicine, Category, MedicinePrice } from "@/types";
+import { useDataLoader } from "@/lib/data-loader";
 
 const categoryFilterMap: Record<string, string[]> = {
   "Og'riq qoldiruvchi": ["Og'riq qoldiruvchi"],
@@ -109,6 +110,11 @@ export default function MedicinesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceModalMedicine, setPriceModalMedicine] = useState<Medicine | null>(null);
+  const { data, isLoading } = useDataLoader();
+
+  const medicines = data?.medicines ?? [];
+  const categories = data?.categories ?? [];
+  const medicinePrices = data?.medicinePrices ?? {};
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -119,7 +125,7 @@ export default function MedicinesPage() {
       }
     }
     return counts;
-  }, []);
+  }, [categories, medicines]);
 
   const filteredMedicines = useMemo(() => {
     let result = [...medicines];
@@ -145,6 +151,17 @@ export default function MedicinesPage() {
 
     return result;
   }, [searchQuery, selectedCategory]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading medicines...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden">
@@ -200,6 +217,7 @@ export default function MedicinesPage() {
                   index={i}
                   t={t}
                   onComparePrices={() => setPriceModalMedicine(medicine)}
+                  medicinePrices={medicinePrices}
                 />
               ))
             )}
@@ -214,6 +232,7 @@ export default function MedicinesPage() {
         onOpenChange={(open) => {
           if (!open) setPriceModalMedicine(null);
         }}
+        medicinePrices={medicinePrices}
       />
     </div>
   );
@@ -312,7 +331,7 @@ function CategoryFilterPills({
   totalResults,
 }: {
   t: (path: string) => string;
-  categories: typeof categories;
+  categories: Category[];
   selectedCategory: string | null;
   onSelect: (category: string | null) => void;
   categoryCounts: Record<string, number>;
@@ -386,11 +405,13 @@ function MedicineCard({
   index,
   onComparePrices,
   t,
+  medicinePrices,
 }: {
   medicine: Medicine;
   index: number;
   onComparePrices: () => void;
   t: (path: string) => string;
+  medicinePrices: Record<string, MedicinePrice[]>;
 }) {
   const prices = medicinePrices[medicine.id];
   const hasPrices = prices && prices.length > 0;
@@ -498,11 +519,13 @@ function PriceComparisonModal({
   medicine,
   open,
   onOpenChange,
+  medicinePrices,
 }: {
   t: (path: string) => string;
   medicine: Medicine | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  medicinePrices: Record<string, MedicinePrice[]>;
 }) {
   const prices = medicine ? medicinePrices[medicine.id] ?? [] : [];
 

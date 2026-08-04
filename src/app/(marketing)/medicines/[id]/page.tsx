@@ -27,14 +27,16 @@ import {
   BadgeCheck,
   Timer,
   HeartPulse,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice } from "@/lib/utils";
-import { medicines, medicinePrices, pharmacies } from "@/lib/data";
+import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
 import type { MapPharmacy } from "@/components/shared/pharmacy-map";
+import { useDataLoader } from "@/lib/data-loader";
 
 const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
   ssr: false,
@@ -45,7 +47,6 @@ const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
   ),
 });
 import { useCart } from "@/store/cart";
-import type { Medicine, MedicinePrice } from "@/types";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
 const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "destructive" | "outline"> = {
@@ -77,6 +78,11 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
   const [quantity, setQuantity] = useState(1);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
+  const { data, isLoading } = useDataLoader();
+
+  const medicines = data?.medicines ?? [];
+  const medicinePrices = data?.medicinePrices ?? {};
+  const pharmacies = data?.pharmacies ?? [];
 
   const medicine = useMemo(() => medicines.find((m) => m.slug === id), [id]);
 
@@ -151,6 +157,17 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading medicine details...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!medicine) {
     return <NotFound />;
   }
@@ -181,7 +198,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
               />
 
               {alternativeMedicines.length > 0 && (
-                <AlternativesSection medicines={alternativeMedicines} />
+                <AlternativesSection medicines={alternativeMedicines} medicinePrices={medicinePrices} />
               )}
 
               <ReviewsPlaceholder />
@@ -587,7 +604,7 @@ function PriceComparisonSection({
   );
 }
 
-function AlternativesSection({ medicines: altMedicines }: { medicines: Medicine[] }) {
+function AlternativesSection({ medicines: altMedicines, medicinePrices }: { medicines: Medicine[]; medicinePrices: Record<string, MedicinePrice[]> }) {
   const { t } = useLanguage();
   return (
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
