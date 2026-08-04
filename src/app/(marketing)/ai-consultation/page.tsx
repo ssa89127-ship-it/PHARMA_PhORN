@@ -22,8 +22,8 @@ const quickActions = [
   { icon: Stethoscope, key: "aiConsult.quickActions.symptoms", query: "Simptomlar" },
   { icon: Brain, key: "aiConsult.quickActions.aiAnalysis", query: "AI tahlil" },
   { icon: Heart, key: "aiConsult.quickActions.healthTips", query: "Sog'liq maslahatlari" },
-  { icon: Zap, key: "Drug Interactions", query: "O'zaro ta'sir tekshirish" },
-  { icon: Activity, key: "Dosage Info", query: "Dozani bilish" },
+  { icon: Zap, key: "aiConsult.quickActions.interactions", query: "O'zaro ta'sir tekshirish" },
+  { icon: Activity, key: "aiConsult.quickActions.dosage", query: "Dozani bilish" },
 ];
 
 const conversationStarters = {
@@ -159,7 +159,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
   const starters = conversationStarters[language] || conversationStarters.uz;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col">
       <div className="container-custom py-8 flex-1 flex flex-col">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -238,32 +238,32 @@ const AIConsultationPage = memo(function AIConsultationPage() {
               <CardContent className="p-4">
                 <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
                   <Shield className="w-4 h-4 text-primary" />
-                  AI Capabilities
+                  {t("aiConsult.capabilities.title")}
                 </h3>
                 <div className="space-y-2 text-xs text-muted-foreground">
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>10,000+ medicines with real pharmacy prices</p>
+                    <p>{t("aiConsult.capabilities.medicines")}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>Drug interaction checking</p>
+                    <p>{t("aiConsult.capabilities.interactions")}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>Personalized allergy warnings</p>
+                    <p>{t("aiConsult.capabilities.allergies")}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>Dosage & side effects info</p>
+                    <p>{t("aiConsult.capabilities.dosage")}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>Symptom analysis with urgency detection</p>
+                    <p>{t("aiConsult.capabilities.symptoms")}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
-                    <p>Multi-turn conversation context</p>
+                    <p>{t("aiConsult.capabilities.context")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -288,8 +288,8 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                     <p className="text-white/70 text-xs">VitaHub AI v2 — {t("aiConsult.status")}</p>
                   </div>
                 </div>
-                <button onClick={handleClear} className="p-2 rounded-lg hover:bg-white/10 transition-colors" title="New conversation">
-                  <RefreshCw className="w-4 h-4 text-white/70" />
+                <button onClick={handleClear} className="group p-2 rounded-lg hover:bg-white/10 transition-colors" title={t("aiConsult.newConversation")}>
+                  <RefreshCw className="w-4 h-4 text-white/70 group-hover:rotate-180 transition-transform duration-300" />
                 </button>
               </div>
 
@@ -339,9 +339,9 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
-                      urgency === "emergency" && "bg-red-500/10 text-red-600 border border-red-200",
-                      urgency === "high" && "bg-orange-500/10 text-orange-600 border border-orange-200",
-                      urgency === "medium" && "bg-yellow-500/10 text-yellow-600 border border-yellow-200",
+                      urgency === "emergency" && "bg-red-500/10 text-red-600 border border-red-200 dark:border-red-800",
+                      urgency === "high" && "bg-orange-500/10 text-orange-600 border border-orange-200 dark:border-orange-800",
+                      urgency === "medium" && "bg-yellow-500/10 text-yellow-600 border border-yellow-200 dark:border-yellow-800",
                     )}
                   >
                     <AlertTriangle className="w-5 h-5" />
@@ -354,7 +354,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-200 text-sm ml-13"
+                    className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-200 dark:border-red-800 text-sm ml-13"
                   >
                     <Shield className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                     <p className="text-red-700">{interactionWarning}</p>
@@ -417,7 +417,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                       <button
                         key={i}
                         onClick={() => handleSend(q)}
-                        className="text-[11px] px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary border border-border/30 transition-colors"
+                        className="text-[11px] px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary hover:scale-[1.02] border border-border/30 transition-all"
                       >
                         {q}
                       </button>
@@ -434,7 +434,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                     <div className="bg-muted/50 rounded-2xl rounded-tl-sm px-5 py-3 border border-border/30">
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-xs text-muted-foreground">Analyzing your query...</span>
+                        <span className="text-xs text-muted-foreground">{t("aiConsult.analyzing")}</span>
                       </div>
                     </div>
                   </motion.div>

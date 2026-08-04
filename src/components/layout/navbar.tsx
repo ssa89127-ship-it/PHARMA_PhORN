@@ -52,6 +52,7 @@ export function Navbar() {
   const { t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
   const { totalItems, toggleCart } = useCart();
@@ -114,29 +115,46 @@ export function Navbar() {
                 )}
               </Link>
             ))}
-            <div className="relative group">
-              <button className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-all duration-200">
+            <div className="relative">
+              <button
+                onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                onBlur={() => setTimeout(() => setIsMoreMenuOpen(false), 150)}
+                aria-expanded={isMoreMenuOpen}
+                aria-haspopup="true"
+                className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-all duration-200"
+              >
                 {t("nav.more") || "Ko'proq"}
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", isMoreMenuOpen && "rotate-180")} />
               </button>
-              <div className="absolute top-full left-0 mt-1 w-56 bg-card rounded-xl shadow-xl border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="p-2">
-                  {moreItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "block px-3 py-2 text-sm rounded-lg transition-colors",
-                        pathname === item.href
-                          ? "text-primary bg-primary/5"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/5"
-                      )}
-                    >
-                      {t(`nav.${item.key}`)}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <AnimatePresence>
+                {isMoreMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-full left-0 mt-1 w-56 max-h-[70vh] overflow-y-auto bg-card rounded-xl shadow-xl border z-50"
+                  >
+                    <div className="p-2">
+                      {moreItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMoreMenuOpen(false)}
+                          className={cn(
+                            "block px-3 py-2 text-sm rounded-lg transition-colors",
+                            pathname === item.href
+                              ? "text-primary bg-primary/5"
+                              : "text-muted-foreground hover:text-foreground hover:bg-accent/5"
+                          )}
+                        >
+                          {t(`nav.${item.key}`)}
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </nav>
 
@@ -179,13 +197,22 @@ export function Navbar() {
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="glass border-t border-border/50 overflow-hidden"
-          >
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="glass border-t border-border/50 overflow-hidden relative z-50"
+            >
             <div className="container-custom py-4 space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -258,6 +285,7 @@ export function Navbar() {
               </div>
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>

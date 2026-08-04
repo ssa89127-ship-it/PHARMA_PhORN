@@ -58,7 +58,7 @@ export function Footer() {
                 <Pill className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold">
-                <span className="text-gradient">Pharma</span>
+                <span className="text-gradient">Vita</span>
                 <span className="text-foreground">Hub</span>
               </span>
             </Link>

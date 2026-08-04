@@ -66,7 +66,7 @@ const InteractionsPage = memo(function InteractionsPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-4rem)]">
+    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container-custom py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -118,9 +118,9 @@ const InteractionsPage = memo(function InteractionsPage() {
                         <button
                           key={med.id}
                           onClick={() => addMedicine(med.name)}
-                          className="w-full flex items-center gap-3 p-3 hover:bg-primary/5 transition-colors text-left"
+                          className="w-full flex items-center gap-3 p-3 hover:bg-primary/5 transition-colors text-left cursor-pointer group"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:rotate-12 transition-transform duration-200">
                             <Pill className="w-4 h-4 text-primary" />
                           </div>
                           <div>
@@ -205,7 +205,16 @@ const InteractionsPage = memo(function InteractionsPage() {
                   <CardContent>
                     {interactions.length === 0 ? (
                       <div className="text-center py-8">
-                        <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                          className="mb-4"
+                        >
+                          <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto">
+                            <CheckCircle2 className="w-10 h-10 text-green-500" />
+                          </div>
+                        </motion.div>
                         <h3 className="text-lg font-semibold mb-2">
                           {t("interactions.safeTitle")}
                         </h3>
@@ -228,7 +237,7 @@ const InteractionsPage = memo(function InteractionsPage() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ ...spring, delay: i * 0.1 }}
-                            className="border rounded-xl p-4 space-y-3"
+                            className="border rounded-xl p-4 space-y-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex items-center gap-2">
