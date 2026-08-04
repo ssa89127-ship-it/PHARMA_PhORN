@@ -17,7 +17,7 @@ export interface Reminder {
   lastNotified?: string;
 }
 
-const STORAGE_KEY = "pharmahub-reminders";
+const STORAGE_KEY = "vitahub-reminders";
 
 export function getReminders(): Reminder[] {
   if (typeof window === "undefined") return [];

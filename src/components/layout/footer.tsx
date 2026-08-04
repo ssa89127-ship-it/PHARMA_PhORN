@@ -82,7 +82,7 @@ export function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Mail className="w-4 h-4 text-primary" />
                 </div>
-                <span>info@pharmahub.uz</span>
+                <span>info@vitahub.uz</span>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ export interface LoyaltyTransaction {
   createdAt: string;
 }
 
-const STORAGE_KEY = "pharmahub-loyalty";
+const STORAGE_KEY = "vitahub-loyalty";
 const POINTS_PER_SO_M = 1; // 1 point per 1 so'm spent
 const REWARD_THRESHOLD = 100000; // Spend 100,000 so'm to get reward
 

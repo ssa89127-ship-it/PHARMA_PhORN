@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/dashboard/", "/cart/"],
     },
-    sitemap: "https://pharmahub.uz/sitemap.xml",
+    sitemap: "https://vitahub.uz/sitemap.xml",
   };
 }

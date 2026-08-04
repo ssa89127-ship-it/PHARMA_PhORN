@@ -51,7 +51,7 @@ export interface PaymentTransaction {
   completedAt?: string;
 }
 
-const STORAGE_KEY = "pharmahub-payments";
+const STORAGE_KEY = "vitahub-payments";
 
 export const paymentMethods: PaymentMethod[] = [
   {

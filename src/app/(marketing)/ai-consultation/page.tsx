@@ -1,29 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bot,
-  Send,
-  User,
-  Sparkles,
-  Loader2,
-  Pill,
-  Stethoscope,
-  Brain,
-  Heart,
-  Shield,
-  ArrowRight,
-  MessageCircle,
-  FileText,
-  Clock,
-  CheckCircle2,
+  Bot, Send, User, Sparkles, Loader2, Pill, Stethoscope, Brain,
+  Heart, Shield, ArrowRight, MessageCircle, Clock, AlertTriangle,
+  RefreshCw, Zap, Activity, Thermometer,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getChatResponse, type ChatMessage, type SuggestedMedicine } from "@/lib/chatbot";
+import { getChatResponse, clearContext, type ChatMessage, type SuggestedMedicine } from "@/lib/chatbot";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +22,8 @@ const quickActions = [
   { icon: Stethoscope, key: "aiConsult.quickActions.symptoms", query: "Simptomlar" },
   { icon: Brain, key: "aiConsult.quickActions.aiAnalysis", query: "AI tahlil" },
   { icon: Heart, key: "aiConsult.quickActions.healthTips", query: "Sog'liq maslahatlari" },
+  { icon: Zap, key: "Drug Interactions", query: "O'zaro ta'sir tekshirish" },
+  { icon: Activity, key: "Dosage Info", query: "Dozani bilish" },
 ];
 
 const conversationStarters = {
@@ -43,6 +33,9 @@ const conversationStarters = {
     "Gripp uchun dori toping",
     "Qandli diabet uchun dori narxlari",
     "Allergiya uchun dori",
+    "Mening allergiyam bor, menga nima mos keladi?",
+    "Ibuprofen va paratsetamolni birga ichsam bo'ladimi?",
+    "Oshqozon og'rig'i uchun dori",
   ],
   ru: [
     "У меня болит голова, что мне принять?",
@@ -50,6 +43,9 @@ const conversationStarters = {
     "Найдите лекарство от гриппа",
     "Цены на лекарства от диабета",
     "Лекарство от аллергии",
+    "У меня аллергия, что мне подойдёт?",
+    "Можно ли принимать ибупрофен и парацетамол вместе?",
+    "Лекарство от боли в животе",
   ],
   en: [
     "I have a headache, what should I take?",
@@ -57,15 +53,28 @@ const conversationStarters = {
     "Find medicine for flu",
     "Diabetes medicine prices",
     "Allergy medicine",
+    "I have allergies, what can I take?",
+    "Can I take ibuprofen and paracetamol together?",
+    "Medicine for stomach ache",
   ],
 };
 
+const features = [
+  { icon: Brain, gradient: "from-blue-500 to-indigo-600", titleKey: "aiConsult.features.ai", descKey: "aiConsult.features.aiDesc" },
+  { icon: Shield, gradient: "from-green-500 to-emerald-600", titleKey: "aiConsult.features.verified", descKey: "aiConsult.features.verifiedDesc" },
+  { icon: Clock, gradient: "from-purple-500 to-pink-600", titleKey: "aiConsult.features.instant", descKey: "aiConsult.features.instantDesc" },
+];
+
 const AIConsultationPage = memo(function AIConsultationPage() {
   const { t, language } = useLanguage();
+  const chatId = useId();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedMedicines, setSuggestedMedicines] = useState<SuggestedMedicine[]>([]);
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
+  const [interactionWarning, setInteractionWarning] = useState<string | null>(null);
+  const [urgency, setUrgency] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,7 +92,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, suggestedMedicines]);
 
   const handleSend = async (text?: string) => {
     const content = (text ?? input).trim();
@@ -100,9 +109,12 @@ const AIConsultationPage = memo(function AIConsultationPage() {
     setInput("");
     setIsLoading(true);
     setSuggestedMedicines([]);
+    setFollowUpQuestions([]);
+    setInteractionWarning(null);
+    setUrgency(null);
 
     try {
-      const response = await getChatResponse(content);
+      const response = await getChatResponse(content, chatId);
       const assistantMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         role: "assistant",
@@ -111,6 +123,9 @@ const AIConsultationPage = memo(function AIConsultationPage() {
       };
       setMessages((prev) => [...prev, assistantMsg]);
       if (response.suggestedMedicines) setSuggestedMedicines(response.suggestedMedicines);
+      if (response.followUpQuestions) setFollowUpQuestions(response.followUpQuestions);
+      if (response.interactionWarning) setInteractionWarning(response.interactionWarning);
+      if (response.urgency) setUrgency(response.urgency);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -123,6 +138,22 @@ const AIConsultationPage = memo(function AIConsultationPage() {
       ]);
     }
     setIsLoading(false);
+  };
+
+  const handleClear = () => {
+    clearContext(chatId);
+    setMessages([
+      {
+        id: "welcome-fresh",
+        role: "assistant",
+        content: t("chatbot.welcome"),
+        timestamp: new Date(),
+      },
+    ]);
+    setSuggestedMedicines([]);
+    setFollowUpQuestions([]);
+    setInteractionWarning(null);
+    setUrgency(null);
   };
 
   const starters = conversationStarters[language] || conversationStarters.uz;
@@ -149,6 +180,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
         </motion.div>
 
         <div className="flex-1 flex flex-col lg:flex-row gap-6">
+          {/* Sidebar */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -161,16 +193,16 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                   <Sparkles className="w-4 h-4 text-primary" />
                   {t("aiConsult.quickTitle")}
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {quickActions.map((action, i) => (
                     <motion.button
                       key={i}
                       whileHover={{ x: 4, transition: spring }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSend(action.query)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-colors text-left"
+                      className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-primary/5 transition-colors text-left"
                     >
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                         <action.icon className="w-4 h-4 text-primary" />
                       </div>
                       <span className="text-sm font-medium">{t(action.key)}</span>
@@ -186,7 +218,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                   <MessageCircle className="w-4 h-4 text-primary" />
                   {t("aiConsult.startersTitle")}
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {starters.map((starter, i) => (
                     <motion.button
                       key={i}
@@ -201,8 +233,44 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-primary" />
+                  AI Capabilities
+                </h3>
+                <div className="space-y-2 text-xs text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>10,000+ medicines with real pharmacy prices</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>Drug interaction checking</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>Personalized allergy warnings</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>Dosage & side effects info</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>Symptom analysis with urgency detection</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                    <p>Multi-turn conversation context</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
+          {/* Chat Area */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -210,14 +278,19 @@ const AIConsultationPage = memo(function AIConsultationPage() {
             className="flex-1 flex flex-col"
           >
             <Card className="flex-1 flex flex-col hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-              <div className="gradient-primary p-4 flex items-center gap-3 shrink-0">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
+              <div className="gradient-primary p-4 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">{t("chatbot.title")}</h3>
+                    <p className="text-white/70 text-xs">VitaHub AI v2 — {t("aiConsult.status")}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold">{t("chatbot.title")}</h3>
-                  <p className="text-white/70 text-xs">VitaHub AI • {t("aiConsult.status")}</p>
-                </div>
+                <button onClick={handleClear} className="p-2 rounded-lg hover:bg-white/10 transition-colors" title="New conversation">
+                  <RefreshCw className="w-4 h-4 text-white/70" />
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6 min-h-[400px] max-h-[500px]">
@@ -259,44 +332,110 @@ const AIConsultationPage = memo(function AIConsultationPage() {
                   ))}
                 </AnimatePresence>
 
+                {/* Urgency Badge */}
+                {urgency && urgency !== "low" && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium",
+                      urgency === "emergency" && "bg-red-500/10 text-red-600 border border-red-200",
+                      urgency === "high" && "bg-orange-500/10 text-orange-600 border border-orange-200",
+                      urgency === "medium" && "bg-yellow-500/10 text-yellow-600 border border-yellow-200",
+                    )}
+                  >
+                    <AlertTriangle className="w-5 h-5" />
+                    {urgency === "emergency" ? "Emergency — Call 103 immediately!" : urgency === "high" ? "Consult a doctor soon" : "Monitor your symptoms"}
+                  </motion.div>
+                )}
+
+                {/* Interaction Warning */}
+                {interactionWarning && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-start gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-200 text-sm ml-13"
+                  >
+                    <Shield className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-red-700">{interactionWarning}</p>
+                  </motion.div>
+                )}
+
+                {/* Suggested Medicines */}
                 {suggestedMedicines.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
+                    transition={spring}
                     className="space-y-2 ml-13"
                   >
-                    <p className="text-xs text-muted-foreground font-medium mb-2">{t("aiConsult.suggestedMeds")}</p>
-                    {suggestedMedicines.map((med) => (
-                      <Link
-                        key={med.slug}
-                        href={`/medicines/${med.slug}`}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all group"
+                    <p className="text-xs text-muted-foreground font-medium mb-2 flex items-center gap-1.5">
+                      <Pill className="w-3.5 h-3.5" />
+                      {t("aiConsult.suggestedMeds")}
+                    </p>
+                    {suggestedMedicines.map((med, i) => (
+                      <motion.div
+                        key={med.slug + i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
                       >
-                        <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0">
-                          <Pill className="w-4 h-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                            {med.name}
-                          </p>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </Link>
+                        <Link
+                          href={`/medicines/${med.slug}`}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all group"
+                        >
+                          <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                            <Pill className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                              {med.name}
+                            </p>
+                            {med.dosage && (
+                              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3" />
+                                {med.dosage}
+                              </p>
+                            )}
+                            {med.sideEffects && med.sideEffects.length > 0 && (
+                              <p className="text-[10px] text-muted-foreground/60 mt-0.5 truncate">
+                                Side effects: {med.sideEffects.join(", ")}
+                              </p>
+                            )}
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                        </Link>
+                      </motion.div>
                     ))}
                   </motion.div>
                 )}
 
+                {/* Follow-up Questions */}
+                {followUpQuestions.length > 0 && !isLoading && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-wrap gap-1.5 ml-13">
+                    {followUpQuestions.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSend(q)}
+                        className="text-[11px] px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground hover:bg-primary/10 hover:text-primary border border-border/30 transition-colors"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+
+                {/* Loading */}
                 {isLoading && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex gap-3"
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shrink-0">
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div className="bg-muted/50 rounded-2xl rounded-tl-sm px-5 py-3 border border-border/30">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        <span className="text-xs text-muted-foreground">Analyzing your query...</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -331,39 +470,24 @@ const AIConsultationPage = memo(function AIConsultationPage() {
           </motion.div>
         </div>
 
+        {/* Features Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.3 }}
           className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4"
         >
-          <Card className="hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-5 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-3 shadow-lg">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">{t("aiConsult.features.ai")}</h3>
-              <p className="text-xs text-muted-foreground">{t("aiConsult.features.aiDesc")}</p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-5 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-lg">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">{t("aiConsult.features.verified")}</h3>
-              <p className="text-xs text-muted-foreground">{t("aiConsult.features.verifiedDesc")}</p>
-            </CardContent>
-          </Card>
-          <Card className="hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
-            <CardContent className="p-5 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mx-auto mb-3 shadow-lg">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-semibold mb-1">{t("aiConsult.features.instant")}</h3>
-              <p className="text-xs text-muted-foreground">{t("aiConsult.features.instantDesc")}</p>
-            </CardContent>
-          </Card>
+          {features.map((f, i) => (
+            <Card key={i} className="hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-5 text-center">
+                <div className={cn("w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center mx-auto mb-3 shadow-lg", f.gradient)}>
+                  <f.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold mb-1">{t(f.titleKey)}</h3>
+                <p className="text-xs text-muted-foreground">{t(f.descKey)}</p>
+              </CardContent>
+            </Card>
+          ))}
         </motion.div>
       </div>
     </div>

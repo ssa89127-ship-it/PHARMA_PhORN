@@ -14,7 +14,7 @@ export interface PriceAlert {
   triggeredAt?: string;
 }
 
-const STORAGE_KEY = "pharmahub-price-alerts";
+const STORAGE_KEY = "vitahub-price-alerts";
 
 export function getPriceAlerts(): PriceAlert[] {
   if (typeof window === "undefined") return [];

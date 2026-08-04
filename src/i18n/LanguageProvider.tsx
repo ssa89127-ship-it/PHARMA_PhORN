@@ -17,13 +17,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>("uz");
 
   useEffect(() => {
-    const saved = localStorage.getItem("pharmahub-lang") as Language;
+    const saved = localStorage.getItem("vitahub-lang") as Language;
     if (saved && ["uz", "ru", "en"].includes(saved)) setLanguage(saved);
   }, []);
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
-    localStorage.setItem("pharmahub-lang", lang);
+    localStorage.setItem("vitahub-lang", lang);
   };
 
   const getNestedValue = (obj: any, path: string): any => {

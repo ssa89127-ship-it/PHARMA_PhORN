@@ -14,7 +14,7 @@ export interface HealthRecord {
   createdAt: string;
 }
 
-const STORAGE_KEY = "pharmahub-health";
+const STORAGE_KEY = "vitahub-health";
 
 export function getHealthRecords(): HealthRecord[] {
   if (typeof window === "undefined") return [];

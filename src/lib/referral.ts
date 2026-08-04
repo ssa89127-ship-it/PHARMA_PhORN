@@ -13,8 +13,8 @@ export interface Referral {
   completedAt?: string;
 }
 
-const STORAGE_KEY = "pharmahub-referrals";
-const USER_KEY = "pharmahub-user";
+const STORAGE_KEY = "vitahub-referrals";
+const USER_KEY = "vitahub-user";
 
 export function getReferralCode(): string {
   if (typeof window === "undefined") return "";

@@ -464,7 +464,7 @@ export const appointments: Appointment[] = [
     reason: "Yillik tekshiruv",
     fee: 80000,
     paymentStatus: "paid",
-    meetLink: "https://meet.pharmahub.uz/apt-1",
+    meetLink: "https://meet.vitahub.uz/apt-1",
     createdAt: "2024-11-10T08:00:00",
     updatedAt: "2024-11-12T10:30:00",
   },

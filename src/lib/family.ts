@@ -14,7 +14,7 @@ export interface FamilyMember {
   createdAt: string;
 }
 
-const STORAGE_KEY = "pharmahub-family";
+const STORAGE_KEY = "vitahub-family";
 
 export function getFamilyMembers(): FamilyMember[] {
   if (typeof window === "undefined") return [];

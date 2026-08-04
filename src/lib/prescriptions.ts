@@ -14,7 +14,7 @@ export interface Prescription {
   createdAt: string;
 }
 
-const STORAGE_KEY = "pharmahub-prescriptions";
+const STORAGE_KEY = "vitahub-prescriptions";
 
 export function getPrescriptions(): Prescription[] {
   if (typeof window === "undefined") return [];

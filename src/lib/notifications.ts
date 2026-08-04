@@ -19,8 +19,8 @@ export interface NotificationItem {
   createdAt: string;
 }
 
-const PREF_KEY = "pharmahub-notif-prefs";
-const HISTORY_KEY = "pharmahub-notif-history";
+const PREF_KEY = "vitahub-notif-prefs";
+const HISTORY_KEY = "vitahub-notif-history";
 
 export function getNotificationPreferences(): NotificationPreference[] {
   if (typeof window === "undefined") return [];
