@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { findInteractions, getInteractionText, getInteractionRecommendation, severityColors, severityLabels, type Interaction } from "@/lib/interactions";
-import { medicines } from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,8 @@ const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5
 
 const InteractionsPage = memo(function InteractionsPage() {
   const { t, language } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
   const [selectedMedicines, setSelectedMedicines] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [interactions, setInteractions] = useState<Interaction[]>([]);

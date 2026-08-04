@@ -23,8 +23,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { pharmacies } from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import type { MapPharmacy } from "@/components/shared/pharmacy-map";
+import type { Pharmacy } from "@/types";
 
 const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
   ssr: false,
@@ -65,6 +66,8 @@ const cardVariants = {
 
 export default function PharmaciesPage() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const pharmacies = data?.pharmacies ?? [];
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
@@ -114,7 +117,7 @@ export default function PharmaciesPage() {
 
   return (
     <div className="overflow-hidden">
-      <HeroSection t={t} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <HeroSection t={t} searchQuery={searchQuery} onSearchChange={setSearchQuery} pharmacyCount={pharmacies.length} />
 
       <section className="section-padding relative">
         <div className="absolute inset-0 grid-pattern opacity-30" />
@@ -208,10 +211,12 @@ function HeroSection({
   t,
   searchQuery,
   onSearchChange,
+  pharmacyCount,
 }: {
   t: (path: string) => string;
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  pharmacyCount: number;
 }) {
   return (
     <section className="relative min-h-[50vh] md:min-h-[55vh] flex items-center pt-24 pb-12 md:pb-16 overflow-hidden">
@@ -228,7 +233,7 @@ function HeroSection({
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-6"
           >
             <Building2 className="w-4 h-4" />
-            {pharmacies.length} {t("stats.pharmacies").toLowerCase()}
+            {pharmacyCount} {t("stats.pharmacies").toLowerCase()}
           </motion.div>
 
           <motion.h1
@@ -372,7 +377,7 @@ function PharmacyCard({
   t,
   onViewMap,
 }: {
-  pharmacy: (typeof pharmacies)[number];
+  pharmacy: Pharmacy;
   index: number;
   t: (path: string) => string;
   onViewMap: () => void;
@@ -504,7 +509,7 @@ function PharmacyMapCard({
   onExpand,
 }: {
   t: (path: string) => string;
-  pharmacies: (typeof pharmacies)[number][];
+  pharmacies: Pharmacy[];
   onExpand: () => void;
 }) {
   return (
@@ -614,7 +619,7 @@ function FullMapModal({
   onClose,
   t,
 }: {
-  pharmacies: (typeof pharmacies)[number][];
+  pharmacies: Pharmacy[];
   onClose: () => void;
   t: (path: string) => string;
 }) {

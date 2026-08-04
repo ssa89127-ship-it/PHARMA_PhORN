@@ -30,13 +30,13 @@ const navItems = [
   { key: "home", href: "/" },
   { key: "pharmacies", href: "/pharmacies" },
   { key: "medicines", href: "/medicines" },
-  { key: "consultation", href: "/consultation" },
-  { key: "aiConsultation", href: "/ai-consultation" },
-  { key: "delivery", href: "/delivery" },
   { key: "prescriptions", href: "/retsept" },
 ];
 
 const moreItems = [
+  { key: "consultation", href: "/consultation" },
+  { key: "aiConsultation", href: "/ai-consultation" },
+  { key: "delivery", href: "/delivery" },
   { key: "interactions", href: "/interactions" },
   { key: "reminders", href: "/reminders" },
   { key: "priceAlerts", href: "/price-alerts" },
@@ -87,7 +87,7 @@ export function Navbar() {
               <Pill className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">
-              <span className="text-gradient">Pharma</span>
+              <span className="text-gradient">Vita</span>
               <span className="text-foreground">Hub</span>
             </span>
           </Link>

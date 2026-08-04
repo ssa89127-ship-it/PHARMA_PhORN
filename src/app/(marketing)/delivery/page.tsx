@@ -30,8 +30,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatPrice, formatDateTime, formatTime, formatDate, getStatusColor } from "@/lib/utils";
-import { orders, medicines, pharmacies } from "@/lib/data";
-import type { Order } from "@/types";
+import { useDataLoader } from "@/lib/data-loader";
+import { orders } from "@/lib/data";
+import type { Order, Medicine } from "@/types";
 
 const DeliveryMap = dynamic(() => import("@/components/shared/delivery-map"), {
   ssr: false,
@@ -63,6 +64,9 @@ const itemVariants = {
 };
 
 export default function DeliveryPage() {
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
+  const pharmacies = data?.pharmacies ?? [];
   const activeOrder = orders.find((o) => o.status === "in-transit");
   const pastOrders = orders.filter((o) => o.id !== activeOrder?.id);
   const favoriteMedicines = medicines.slice(0, 4);
@@ -94,7 +98,7 @@ export default function DeliveryPage() {
             />
           )}
 
-          <DeliveryCoverageMap />
+          <DeliveryCoverageMap pharmacies={pharmacies} />
 
           <FavoriteMedicines medicines={favoriteMedicines} />
         </div>
@@ -147,7 +151,7 @@ function HeroSection({ hasActiveOrder }: { hasActiveOrder: boolean }) {
   );
 }
 
-function DeliveryCoverageMap() {
+function DeliveryCoverageMap({ pharmacies }: { pharmacies: import("@/types").Pharmacy[] }) {
   const { t } = useLanguage();
   const mapPharmacies = pharmacies.slice(0, 30).map((p) => ({
     id: p.id,
@@ -664,7 +668,7 @@ function OrderDetailModal({
   );
 }
 
-function FavoriteMedicines({ medicines: meds }: { medicines: typeof medicines }) {
+function FavoriteMedicines({ medicines: meds }: { medicines: Medicine[] }) {
   const { t } = useLanguage();
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible">

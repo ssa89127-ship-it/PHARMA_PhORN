@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Medicine, Category, MedicinePrice, Pharmacy } from "@/types";
+import type { Medicine, Category, MedicinePrice, Pharmacy, Doctor } from "@/types";
 
 interface CachedData {
   medicines: Medicine[];
   categories: Category[];
   medicinePrices: Record<string, MedicinePrice[]>;
   pharmacies: Pharmacy[];
+  doctors: Doctor[];
 }
 
 let cachedData: CachedData | null = null;
@@ -24,6 +25,7 @@ async function loadData(): Promise<CachedData> {
       categories: mod.categories,
       medicinePrices: mod.medicinePrices,
       pharmacies: mod.pharmacies,
+      doctors: mod.doctors,
     };
     return cachedData;
   })();

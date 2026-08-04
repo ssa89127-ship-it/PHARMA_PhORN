@@ -45,7 +45,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn, formatPrice, getInitials } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { doctors } from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import type { Doctor, TimeSlot } from "@/types";
 
 type TabValue = "all" | "available-today" | "video" | "chat";
@@ -69,6 +69,8 @@ const cardVariants = {
 
 export default function ConsultationPage() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const doctors = data?.doctors ?? [];
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabValue>("all");
   const [expandedDoctorId, setExpandedDoctorId] = useState<string | null>(null);

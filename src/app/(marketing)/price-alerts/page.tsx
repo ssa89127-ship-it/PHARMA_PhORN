@@ -33,7 +33,7 @@ import {
   togglePriceAlert,
   type PriceAlert,
 } from "@/lib/price-alerts";
-import { medicines, medicinePrices } from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -41,6 +41,9 @@ const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5
 
 const PriceAlertsPage = memo(function PriceAlertsPage() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
+  const medicinePrices = data?.medicinePrices ?? {};
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

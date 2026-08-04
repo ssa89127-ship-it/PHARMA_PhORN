@@ -12,9 +12,20 @@
  * - 3-language support (UZ/RU/EN) with cross-language synonyms
  */
 
-import { medicines, medicinePrices } from "./data";
 import type { Medicine } from "@/types";
 import { getFamilyMembers } from "./family";
+
+let medicines: Medicine[] = [];
+let medicinePrices: Record<string, any[]> = {};
+let _dataLoaded = false;
+
+async function ensureData() {
+  if (_dataLoaded) return;
+  const mod = await import("./data");
+  medicines = mod.medicines;
+  medicinePrices = mod.medicinePrices as any;
+  _dataLoaded = true;
+}
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -802,6 +813,7 @@ function updateContext(chatId: string, userMsg: string, response: ChatResponse, 
 // ─── Main Chat Response ───────────────────────────────────────────
 
 export async function getChatResponse(message: string, chatId = "default"): Promise<ChatResponse> {
+  await ensureData();
   const lang = detectLang(message);
   const intent = detectIntent(message, lang);
   const userProfile = loadUserProfile();
