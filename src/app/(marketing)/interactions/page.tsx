@@ -66,7 +66,7 @@ const InteractionsPage = memo(function InteractionsPage() {
   );
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container-custom py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

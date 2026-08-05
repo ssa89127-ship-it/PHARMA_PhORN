@@ -151,7 +151,7 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
   useEffect(() => { getHomepageMedicines().then(setHeroMeds); }, []);
 
   return (
-    <section className="relative min-h-[95vh] flex items-center pt-20 pb-16 overflow-hidden">
+    <section className="relative min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-5rem)] flex items-center pb-16 overflow-hidden">
       <div className="absolute inset-0">
         <div className="absolute inset-0 grid-pattern opacity-20" />
         <motion.div

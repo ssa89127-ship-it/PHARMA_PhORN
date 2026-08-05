@@ -159,7 +159,7 @@ const AIConsultationPage = memo(function AIConsultationPage() {
   const starters = conversationStarters[language] || conversationStarters.uz;
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <div className="container-custom py-8 flex-1 flex flex-col">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
