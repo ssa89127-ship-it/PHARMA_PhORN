@@ -9,6 +9,14 @@ interface CachedData {
   medicinePrices: Record<string, MedicinePrice[]>;
   pharmacies: Pharmacy[];
   doctors: Doctor[];
+  orders: any[];
+  appointments: any[];
+  medicalRecords: any[];
+  savedAddresses: any[];
+  paymentMethods: any[];
+  loyaltyPoints: any;
+  notifications: any[];
+  dashboardStats: any;
 }
 
 let cachedData: CachedData | null = null;
@@ -26,6 +34,14 @@ async function loadData(): Promise<CachedData> {
       medicinePrices: mod.medicinePrices,
       pharmacies: mod.pharmacies,
       doctors: mod.doctors,
+      orders: mod.orders,
+      appointments: mod.appointments,
+      medicalRecords: mod.medicalRecords,
+      savedAddresses: mod.savedAddresses,
+      paymentMethods: mod.paymentMethods,
+      loyaltyPoints: mod.loyaltyPoints,
+      notifications: mod.notifications,
+      dashboardStats: mod.dashboardStats,
     };
     return cachedData;
   })();

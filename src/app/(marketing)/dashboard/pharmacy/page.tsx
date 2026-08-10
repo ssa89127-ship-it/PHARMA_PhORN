@@ -56,12 +56,7 @@ import {
   Bar,
 } from "recharts";
 import { cn, formatPrice, formatDate, formatDateTime, getStatusColor } from "@/lib/utils";
-import {
-  pharmacies,
-  medicines,
-  orders,
-  dashboardStats,
-} from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -111,7 +106,10 @@ const itemVariants = {
 
 const CHART_COLORS = ["#059669", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 
-const pharmacy = pharmacies[0];
+function getPharmacyData() {
+  // This will be called inside components that have access to useDataLoader
+  return { pharmacies: [] as any[], medicines: [] as any[], orders: [] as any[], dashboardStats: {} as any };
+}
 
 function StatusDot({ stock, threshold }: { stock: number; threshold?: number }) {
   const t = threshold || 50;
@@ -212,6 +210,14 @@ function StatCard({ title, value, icon: Icon, trend, trendValue, color, subtitle
 
 function OverviewTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const pharmacies = data?.pharmacies ?? [];
+  const orders = (data?.orders ?? []) as Order[];
+  const medicines = data?.medicines ?? [];
+  const ds = data?.dashboardStats as any ?? {};
+  const dashboardStats = { totalRevenue: ds.totalRevenue ?? 0 };
+  const pharmacy = pharmacies[0];
+  if (!pharmacy) return null;
   const pharmacyOrders = orders.filter(o => o.pharmacyId === pharmacy.id);
   const todayOrders = pharmacyOrders.length;
   const pendingOrders = pharmacyOrders.filter(o => o.status === "pending" || o.status === "confirmed" || o.status === "preparing").length;
@@ -361,6 +367,8 @@ function OverviewTab() {
 
 function InventoryTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
   const [search, setSearch] = useState("");
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
@@ -506,6 +514,8 @@ function InventoryTab() {
 
 function OrdersTabSection() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const { success } = useToast();
@@ -686,6 +696,8 @@ function OrdersTabSection() {
 
 function PricingTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
   const [prices, setPrices] = useState<Record<string, number>>(
     Object.fromEntries(medicines.map(m => [m.id, m.discountedPrice || m.unitPrice]))
   );
@@ -812,6 +824,8 @@ function EmployeesTab() {
 
 function DeliveryTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex items-center justify-between">
@@ -896,6 +910,9 @@ function DeliveryTab() {
 
 function ReportsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const ds = data?.dashboardStats as any ?? {};
+  const dashboardStats = { monthlyRevenue: (ds.monthlyRevenue ?? []) as number[] };
   const todayRevenue = 4820;
   const weekRevenue = 34200;
   const monthRevenue = 128450;
@@ -1016,6 +1033,9 @@ function ReportsTab() {
 
 function SalesAnalyticsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const ds = data?.dashboardStats as any ?? {};
+  const dashboardStats = { popularMedicines: (ds.popularMedicines ?? []) as { name: string; count: number }[] };
   const revenue7Days = [
     { day: "Mon", revenue: 4200 },
     { day: "Tue", revenue: 3800 },
@@ -1131,12 +1151,23 @@ function SalesAnalyticsTab() {
 
 export default function PharmacyDashboardPage() {
   const { t } = useLanguage();
+  const { data, isLoading } = useDataLoader();
+  const pharmacies = data?.pharmacies ?? [];
+  const pharmacy = pharmacies[0];
   const [activeTab, setActiveTab] = useState<PharmacyTab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [activeTab]);
+
+  if (isLoading || !pharmacy) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">

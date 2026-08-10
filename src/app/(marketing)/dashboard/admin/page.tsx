@@ -65,14 +65,7 @@ import {
   Cell,
 } from "recharts";
 import { cn, formatPrice, formatDate } from "@/lib/utils";
-import {
-  dashboardStats,
-  medicines,
-  doctors,
-  pharmacies,
-  categories,
-  orders,
-} from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -209,6 +202,20 @@ function CustomTooltip({ active, payload, label }: any) {
 
 function DashboardTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const ds = data?.dashboardStats as any ?? {};
+  const dashboardStats = {
+    totalRevenue: ds.totalRevenue ?? 0,
+    totalOrders: ds.totalOrders ?? 0,
+    totalCustomers: ds.totalCustomers ?? 0,
+    totalDoctors: ds.totalDoctors ?? 0,
+    totalMedicines: ds.totalMedicines ?? 0,
+    totalPharmacies: ds.totalPharmacies ?? 0,
+    monthlyRevenue: (ds.monthlyRevenue ?? []) as number[],
+    monthlyOrders: (ds.monthlyOrders ?? []) as number[],
+    popularMedicines: (ds.popularMedicines ?? []) as { name: string; count: number }[],
+    revenueByPharmacy: (ds.revenueByPharmacy ?? []) as { name: string; revenue: number }[],
+  };
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const revenueData = dashboardStats.monthlyRevenue.map((val, i) => ({
@@ -416,6 +423,8 @@ function DashboardTab() {
 
 function MedicinesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
   const [search, setSearch] = useState("");
   const filtered = medicines.filter((m) =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -526,6 +535,8 @@ function MedicinesTab() {
 
 function DoctorsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const doctors = data?.doctors ?? [];
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -613,6 +624,8 @@ function DoctorsTab() {
 
 function PharmaciesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const pharmacies = data?.pharmacies ?? [];
   return (
     <div className="space-y-4">
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -709,6 +722,8 @@ function PharmaciesTab() {
 
 function CategoriesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const categories = data?.categories ?? [];
   const iconMap: Record<string, React.ElementType> = {
     Activity,
     Shield: ShieldCheck,
@@ -814,6 +829,8 @@ function AppointmentsTab() {
 
 function OrdersTabSection() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -1048,12 +1065,21 @@ function TabContent({ tab }: { tab: AdminTab }) {
 
 export default function AdminDashboardPage() {
   const { t } = useLanguage();
+  const { isLoading } = useDataLoader();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [activeTab]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-emerald-500/5">

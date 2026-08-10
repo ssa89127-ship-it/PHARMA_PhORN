@@ -21,10 +21,16 @@ let _dataLoaded = false;
 
 async function ensureData() {
   if (_dataLoaded) return;
-  const mod = await import("./data");
-  medicines = mod.medicines;
-  medicinePrices = mod.medicinePrices as any;
-  _dataLoaded = true;
+  try {
+    const mod = await import("./data");
+    medicines = mod.medicines;
+    medicinePrices = mod.medicinePrices as any;
+    _dataLoaded = true;
+  } catch (error) {
+    console.error("Failed to load data for chatbot:", error);
+    medicines = [];
+    medicinePrices = {};
+  }
 }
 
 // ─── Types ────────────────────────────────────────────────────────

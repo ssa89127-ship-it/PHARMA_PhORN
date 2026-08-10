@@ -57,17 +57,7 @@ import {
   Ban,
   ExternalLink,
 } from "lucide-react";
-import {
-  orders,
-  appointments,
-  medicalRecords,
-  medicines,
-  pharmacies,
-  savedAddresses,
-  paymentMethods,
-  loyaltyPoints,
-  notifications as notificationsData,
-} from "@/lib/data";
+import { useDataLoader } from "@/lib/data-loader";
 import { cn, formatPrice, formatDate, formatDateTime, getTimeAgo } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,7 +72,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { PrescriptionsSection } from "@/components/shared/prescriptions-section";
 import NearestPharmacy from "@/components/shared/nearest-pharmacy";
-import type { Order, Notification } from "@/types";
+import type { Order, Appointment, Notification } from "@/types";
 
 type Tab = "overview" | "orders" | "appointments" | "saved-medicines" | "notifications" | "profile" | "addresses" | "payment-methods" | "medical-records" | "invoices" | "prescriptions";
 
@@ -226,6 +216,12 @@ function TrackingTimeline({ tracking }: { tracking: Order["tracking"] }) {
 
 function OverviewTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
+  const appointments = (data?.appointments ?? []) as Appointment[];
+  const medicines = data?.medicines ?? [];
+  const pharmacies = data?.pharmacies ?? [];
+  const loyaltyPoints = data?.loyaltyPoints ?? { total: 0, tier: "", pointsUntilNextTier: 0, earned: 0, redeemed: 0 };
   const recentOrders = orders.slice(0, 2);
   const upcomingAppointments = appointments.filter(a => a.status === "scheduled");
   const savedMedsCount = medicines.filter(m => ["med-1", "med-3", "med-7", "med-9"].includes(m.id)).length;
@@ -437,6 +433,8 @@ function OverviewTab() {
 
 function OrdersTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
@@ -584,6 +582,8 @@ function Truck({ className }: { className?: string }) {
 
 function AppointmentsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const appointments = (data?.appointments ?? []) as Appointment[];
   const upcomingAppointments = appointments.filter(a => a.status !== "completed" && a.status !== "cancelled");
   const pastAppointments = appointments.filter(a => a.status === "completed" || a.status === "cancelled");
 
@@ -700,6 +700,8 @@ function PrescriptionsTab() {
 
 function SavedMedicinesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicines = data?.medicines ?? [];
   const savedIds = ["med-1", "med-3", "med-7", "med-9"];
   const savedMeds = medicines.filter(m => savedIds.includes(m.id));
   const [removedIds, setRemovedIds] = useState<string[]>([]);
@@ -762,6 +764,8 @@ function SavedMedicinesTab() {
 
 function NotificationsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const notificationsData = data?.notifications ?? [];
   const [notifs, setNotifs] = useState<Notification[]>(notificationsData);
 
   const markAsRead = (id: string) => {
@@ -1010,6 +1014,8 @@ function ProfileTab() {
 
 function MedicalRecordsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const medicalRecords = data?.medicalRecords ?? [];
   const typeColors: Record<string, string> = {
     prescription: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
     "lab-report": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
@@ -1084,6 +1090,8 @@ function MedicalRecordsTab() {
 
 function AddressesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const savedAddresses = data?.savedAddresses ?? [];
   const [addresses, setAddresses] = useState(savedAddresses);
 
   const setDefault = (id: string) => {
@@ -1146,6 +1154,8 @@ function AddressesTab() {
 
 function PaymentMethodsTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const paymentMethods = data?.paymentMethods ?? [];
   const [methods, setMethods] = useState(paymentMethods);
 
   const setDefault = (id: string) => {
@@ -1211,6 +1221,8 @@ function PaymentMethodsTab() {
 
 function InvoicesTab() {
   const { t } = useLanguage();
+  const { data } = useDataLoader();
+  const orders = (data?.orders ?? []) as Order[];
   const invoiceData = orders.map((order, i) => ({
     id: `inv-${i + 1}`,
     orderId: order.id,
@@ -1313,12 +1325,21 @@ function TabContent({ tab }: { tab: Tab }) {
 
 export default function PatientDashboardPage() {
   const { t } = useLanguage();
+  const { isLoading } = useDataLoader();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [activeTab]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">

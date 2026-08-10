@@ -66,13 +66,21 @@ const cardVariants = {
 
 export default function PharmaciesPage() {
   const { t } = useLanguage();
-  const { data } = useDataLoader();
+  const { data, isLoading } = useDataLoader();
   const pharmacies = data?.pharmacies ?? [];
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [mapPharmacy, setMapPharmacy] = useState<MapPharmacy | null>(null);
   const [showFullMap, setShowFullMap] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   const filteredPharmacies = useMemo(() => {
     let result = [...pharmacies];
@@ -109,7 +117,7 @@ export default function PharmaciesPage() {
     }
 
     return result;
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, pharmacies]);
 
   const filterOptions = useMemo(() =>
     filterKeys.map((f) => ({ value: f.value, label: t(f.key) })),
