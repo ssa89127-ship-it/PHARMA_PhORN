@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { analyzeSymptoms, type ChatMessage } from "@/lib/chatbot";
+import type { ChatMessage } from "@/lib/chatbot";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
@@ -232,7 +232,13 @@ export default function SymptomCheckerPage() {
     setResult(null);
 
     try {
-      const data = await analyzeSymptoms(symptomText);
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: symptomText, action: "analyzeSymptoms" }),
+      });
+      if (!res.ok) throw new Error("Analyze API failed");
+      const data: { possibleConditions: string[]; recommendedAction: string; urgency: string } = await res.json();
       const conditions = data.possibleConditions.map((name, i) => ({
         name,
         probability: Math.max(15, 85 - i * (25 + Math.floor(Math.random() * 15))),
@@ -246,7 +252,7 @@ export default function SymptomCheckerPage() {
               { name: "Vitamin yetishmasligi", probability: 25 },
             ],
         recommendedAction: data.recommendedAction || t("symptomChecker.defaultAction"),
-        urgency: data.urgency || "low",
+        urgency: (data.urgency as UrgencyLevel) || "low",
         suggestedMedicines: ["Paratsetamol 500mg", "Vitamin C 500mg"],
       };
       setResult(mockResult);

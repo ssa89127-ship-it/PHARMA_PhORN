@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getChatResponse, clearContext, type ChatMessage, type SuggestedMedicine } from "@/lib/chatbot";
+import type { ChatMessage, SuggestedMedicine, ChatResponse } from "@/lib/chatbot";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
 
@@ -114,7 +114,13 @@ const AIConsultationPage = memo(function AIConsultationPage() {
     setUrgency(null);
 
     try {
-      const response = await getChatResponse(content, chatId);
+      const res = await fetch("/api/chatbot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content, chatId }),
+      });
+      if (!res.ok) throw new Error("Chatbot API failed");
+      const response: ChatResponse = await res.json();
       const assistantMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         role: "assistant",
@@ -141,7 +147,11 @@ const AIConsultationPage = memo(function AIConsultationPage() {
   };
 
   const handleClear = () => {
-    clearContext(chatId);
+    fetch("/api/chatbot", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatId }),
+    }).catch(() => {});
     setMessages([
       {
         id: "welcome-fresh",
