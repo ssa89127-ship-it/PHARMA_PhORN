@@ -6,12 +6,28 @@ import {
   MessageCircle, X, Send, Bot, User, Sparkles, Loader2, Pill,
   AlertTriangle, Info, ArrowRight, Clock, Shield, RefreshCw,
 } from "lucide-react";
-import type { ChatMessage, SuggestedMedicine, ChatResponse } from "@/lib/chatbot";
+import type { ChatMessage, SuggestedMedicine, ChatResponse, UserProfile } from "@/lib/chatbot";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 300, damping: 30, mass: 0.8 };
+
+function getUserProfile(): UserProfile | undefined {
+  try {
+    const data = localStorage.getItem("vitahub-family");
+    if (!data) return undefined;
+    const members = JSON.parse(data);
+    if (!Array.isArray(members) || members.length === 0) return undefined;
+    return {
+      allergies: members.flatMap((m) => m.allergies || []),
+      conditions: members.flatMap((m) => m.conditions || []),
+      medications: members.flatMap((m) => m.medications || []),
+    };
+  } catch {
+    return undefined;
+  }
+}
 
 export function AIChatbot() {
   const { t, tArray, language } = useLanguage();
@@ -69,7 +85,7 @@ export function AIChatbot() {
       const res = await fetch("/api/chatbot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: content, chatId }),
+        body: JSON.stringify({ message: content, chatId, userProfile: getUserProfile() }),
       });
       if (!res.ok) throw new Error("Chatbot API failed");
       const response: ChatResponse = await res.json();
@@ -158,7 +174,7 @@ export function AIChatbot() {
                   </div>
                   <div>
                     <h3 className="text-white font-semibold text-sm">{t("chatbot.title")}</h3>
-                    <p className="text-white/70 text-xs">VitaHub AI v2</p>
+                    <p className="text-white/70 text-xs">VitaHub AI v3</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">

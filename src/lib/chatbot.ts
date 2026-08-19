@@ -25,13 +25,17 @@ async function ensureData() {
     const mod = await import("./data");
     medicines = mod.medicines;
     medicinePrices = mod.medicinePrices as any;
+    pharmacies = mod.pharmacies;
     _dataLoaded = true;
   } catch (error) {
     console.error("Failed to load data for chatbot:", error);
     medicines = [];
     medicinePrices = {};
+    pharmacies = [];
   }
 }
+
+let pharmacies: any[] = [];
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -96,8 +100,9 @@ function levenshtein(a: string, b: string): number {
 }
 
 function fuzzyMatch(query: string, target: string, threshold = 0.6): boolean {
-  const q = normalize(query);
-  const t = normalize(target);
+  const q = normalize(query || "");
+  const t = normalize(target || "");
+  if (!q || !t) return false;
 
   if (t.includes(q) || q.includes(t)) return true;
 
@@ -112,9 +117,9 @@ function fuzzyMatch(query: string, target: string, threshold = 0.6): boolean {
 
 const SYNONYMS: Record<string, string[]> = {
   // Pain & Fever
-  "headache": ["bosh og'rig'i", "bosh og'riq", "migren", "головная боль", "migrenь"],
+  "headache": ["bosh og'rig'i", "bosh og'riq", "migren", "головная боль", "мигрень"],
   "fever": ["isitma", "harorat", "temperatura", "лихорадка", "жар"],
-  "pain": ["og'riq", "og'riq", "боль", "aqi"],
+  "pain": ["og'riq", "боль", "pain"],
   "toothache": ["tish og'rig'i", "зубная боль"],
   "stomachache": ["qorin og'rig'i", "oshqozon og'rig'i", "боль в животе"],
   "backache": ["bel og'rig'i", "спинная боль"],
@@ -160,7 +165,7 @@ const SYNONYMS: Record<string, string[]> = {
   // Mental Health
   "anxiety": ["tashvish", "тревога", "anxiety", "stress"],
   "insomnia": ["uyqusizlik", "бессонница", "insomnia"],
-  "depression": [" depressiya", "депрессия", "depression"],
+  "depression": ["depressiya", "депрессия", "depression"],
 
   // Skin
   "acne": ["akne", "угри", "pimples"],
@@ -214,6 +219,7 @@ function detectLang(text: string): Lang {
 }
 
 function normalize(text: string): string {
+  if (!text) return "";
   return text
     .toLowerCase()
     .replace(/[''`]/g, "")
@@ -225,7 +231,7 @@ function normalize(text: string): string {
 // ─── Intent Detection ─────────────────────────────────────────────
 
 interface Intent {
-  type: "greeting" | "thanks" | "help" | "price" | "symptom" | "medicine_search" | "interaction_check" | "dosage" | "side_effects" | "alternative" | "category" | "emergency" | "unknown";
+  type: "greeting" | "thanks" | "help" | "price" | "symptom" | "medicine_search" | "interaction_check" | "dosage" | "side_effects" | "alternative" | "category" | "emergency" | "where_to_buy" | "discounts" | "hours" | "delivery" | "popular" | "who_are_you" | "order_status" | "unknown";
   confidence: number;
   entities: string[];
 }
@@ -235,17 +241,17 @@ function detectIntent(text: string, lang: Lang): Intent {
   const entities: string[] = [];
 
   // Greeting
-  if (/(salom|assalom|hey|hello|hi|привет|здравствуйте|alo|salomley|assalomu)/i.test(lower)) {
+  if (/(salom|assalom|hey|hello|hi|привет|здравствуйте|alo|salomley|assalomu)\b/i.test(lower)) {
     return { type: "greeting", confidence: 0.95, entities: [] };
   }
 
   // Thanks
-  if (/(rahmat|tashakkur|thanks|thank you|спасибо|благодарю|rahmatlar)/i.test(lower)) {
+  if (/(rahmat|tashakkur|thanks|thank you|спасибо|благодарю|rahmatlar)\b/i.test(lower)) {
     return { type: "thanks", confidence: 0.95, entities: [] };
   }
 
   // Help
-  if (/(yordam|help|помощь|nima qil|what can|qanday)/i.test(lower)) {
+  if (/(yordam|help|помощь|nima qil|what can|qanday qil|qanday yordam)/i.test(lower)) {
     return { type: "help", confidence: 0.9, entities: [] };
   }
 
@@ -254,12 +260,61 @@ function detectIntent(text: string, lang: Lang): Intent {
     return { type: "emergency", confidence: 0.95, entities: [] };
   }
 
+  // Who are you / capabilities
+  if (/(sen kimsan|кто ты|who are you|nima qila olasan|what can you do|qanday ishlaysan|что ты умеешь)/i.test(lower)) {
+    return { type: "who_are_you", confidence: 0.95, entities: [] };
+  }
+
+  // Discounts / promotions (checked early: "chegirma bormi?" etc.)
+  if (/(chegirma|акция|скидк|discount|promo|sale|arzonlashtir|aktsiya|deals?)/i.test(lower)) {
+    return { type: "discounts", confidence: 0.85, entities: [] };
+  }
+
+  // Opening hours
+  if (/(ish vaqti|qachongacha|ochiq|soat nechada|open now|opening hours|working hours|часы работы|работает|во сколько работает|24 soat|24\/7|24ч)/i.test(lower)) {
+    return { type: "hours", confidence: 0.85, entities: [] };
+  }
+
+  // Delivery
+  if (/(yetkaz|доставка|delivery|dostavka|курьер|tez yetib)/i.test(lower)) {
+    return { type: "delivery", confidence: 0.85, entities: [] };
+  }
+
+  // Popular / bestsellers
+  if (/(mashhur|popular|bestseller|популярное|top dorilar|eng ko'p sotil|best seller|tavsiya etilgan|хиты)/i.test(lower)) {
+    return { type: "popular", confidence: 0.8, entities: [] };
+  }
+
+  // Order status
+  if (/(buyurtma|заказ|order status|где мой заказ|\border\b|tracking)/i.test(lower)) {
+    return { type: "order_status", confidence: 0.8, entities: [] };
+  }
+
+  // Where to buy / pharmacy availability
+  if (/(qaerdan|qayerdan|qayerda bor|qaysi dorixona|dorixonada|bormi\b|bormasmi|есть ли|в наличии|где купить|где можно|where can i buy|where to buy|where is|which pharmacy|in stock)/i.test(lower)) {
+    const medName = extractMedicineName(lower);
+    if (medName) entities.push(medName);
+    return { type: "where_to_buy", confidence: 0.85, entities };
+  }
+
+  // Symptom detection — must run before price/dosage/side-effects so phrases
+  // like "bosh og'rig'iga nima ichsam" resolve as symptoms, not dosage queries
+  const symptomResult = detectSymptoms(lower, lang);
+  if (symptomResult.symptoms.length > 0) {
+    return { type: "symptom", confidence: symptomResult.confidence, entities: symptomResult.symptoms };
+  }
+
   // Price query
   if (/(narx|qancha|arzon|price|cheap|buy|сколько|цена|купить|стоит|necha|qimmat|sarovon)/i.test(lower)) {
     // Extract medicine name from price query
     const medName = extractMedicineName(lower);
     if (medName) entities.push(medName);
     return { type: "price", confidence: 0.85, entities };
+  }
+
+  // Interaction check — safety-critical, checked before dosage/side-effects
+  if (/(interaction|o'zaro ta'sir|взаимодействие|together|birga|combined|mixed)/i.test(lower)) {
+    return { type: "interaction_check", confidence: 0.85, entities: extractMedicineNames(lower) };
   }
 
   // Dosage query
@@ -276,11 +331,6 @@ function detectIntent(text: string, lang: Lang): Intent {
     return { type: "side_effects", confidence: 0.85, entities };
   }
 
-  // Interaction check
-  if (/(interaction|o'zaro ta'sir|взаимодействие|together|birga|combined|mixed)/i.test(lower)) {
-    return { type: "interaction_check", confidence: 0.85, entities: extractMedicineNames(lower) };
-  }
-
   // Alternative
   if (/(alternative|almashinuv|замена|instead|boshqa|другой|generic|oxirgi)/i.test(lower)) {
     const medName = extractMedicineName(lower);
@@ -295,12 +345,6 @@ function detectIntent(text: string, lang: Lang): Intent {
     return { type: "category", confidence: 0.85, entities };
   }
 
-  // Symptom detection
-  const symptomResult = detectSymptoms(lower, lang);
-  if (symptomResult.symptoms.length > 0) {
-    return { type: "symptom", confidence: symptomResult.confidence, entities: symptomResult.symptoms };
-  }
-
   // Medicine search (fallback)
   const medName = extractMedicineName(lower);
   if (medName) {
@@ -311,16 +355,50 @@ function detectIntent(text: string, lang: Lang): Intent {
   return { type: "unknown", confidence: 0.3, entities: [] };
 }
 
+function bestMedicineMatch(text: string): Medicine | null {
+  const cleaned = normalize(text);
+  if (cleaned.length < 2) return null;
+
+  let best: { med: Medicine; score: number } | null = null;
+  for (const med of medicines) {
+    const names = [med.name, med.genericName]
+      .filter((n): n is string => typeof n === "string" && n.length > 0)
+      .map(normalize)
+      .filter((n) => n.length > 1);
+    for (const n of names) {
+      let score = 0;
+      if (cleaned.includes(n)) score = n.length * 2;
+      else if (n.includes(cleaned) && cleaned.length >= 3) score = cleaned.length;
+      else if (fuzzyMatch(cleaned, n, 0.72) && cleaned.length >= 3) score = Math.min(n.length, cleaned.length);
+      if (score > 0 && (!best || score > best.score)) best = { med, score };
+    }
+  }
+  return best?.med ?? null;
+}
+
+const MED_STOPWORDS = new Set([
+  "nima", "qancha", "uchun", "kerak", "bormi", "bormasmi", "bering", "toping", "qilish", "bo'yicha",
+  "haqida", "tavsiya", "maslahat", "price", "narx", "narxi", "arzon", "qimmat", "buy", "give", "find",
+  "search", "show", "tell", "about", "what", "which", "how", "where", "the", "a", "an", "for", "my",
+  "i", "me", "you", "do", "does", "is", "are", "can", "should", "take", "have", "has", "had", "ichsam",
+  "ichish", "qabul", "qanday", "necha", "mg", "tableta", "kapsula", "sirop", "dori", "dorilar", "dori vositasi",
+  "qayerda", "qayerdan", "qaerdan", "qaysi", "dorixona", "dorixonada", "bor", "ochiq", "soat", "holati",
+  "kuni", "24", "24/7", "shu", "bu", "u", "uning", "ё", "лекарство", "препарат",
+]);
+
 function extractMedicineName(text: string): string | null {
+  const exact = bestMedicineMatch(text);
+  if (exact) return exact.name;
+
   const cleaned = text
-    .replace(/^(nima|qancha|uchun|kerak|bormi|bering|toping|qilish|bo'yicha|haqida|tavsiya|maslahat|price|narx|arzon|qimmat|give|find|search|show|tell|about|what|which|how|where|the|a|an|for|my|i|me|you|do|does|is|are|can|should|take|have|has|had|ichsam|ichish|qabul|qanday|necha|mg|tableta|kapsula|sirop|dori|dorilar|medicines?|edicine?|лекарство|препарат|dori vositasi)\s*/gi, "")
+    .replace(/^(nima|qancha|narxi|uchun|kerak|bormi|bering|toping|qilish|bo'yicha|haqida|tavsiya|maslahat|price|narx|arzon|qimmat|give|find|search|show|tell|about|what|which|how|where|the|a|an|for|my|i|me|you|do|does|is|are|can|should|take|have|has|had|ichsam|ichish|qabul|qanday|necha|mg|tableta|kapsula|sirop|dori|dorilar|medicines?|edicine?|qayerda|qayerdan|qaerdan|qaysi|dorixona|bor|ochiq|soat|holati|лекарство|препарат|dori vositasi)\s*/gi, "")
     .trim();
 
   if (cleaned.length < 2) return null;
 
   // Try to find exact medicine match
   for (const med of medicines) {
-    if (fuzzyMatch(cleaned, med.name) || fuzzyMatch(cleaned, med.genericName)) {
+    if (fuzzyMatch(cleaned, med.name) || (med.genericName && fuzzyMatch(cleaned, med.genericName))) {
       return med.name;
     }
   }
@@ -330,22 +408,47 @@ function extractMedicineName(text: string): string | null {
     const nameLower = normalize(med.name);
     const genericLower = normalize(med.genericName);
     if (nameLower.includes(cleaned) || cleaned.includes(nameLower) ||
-        genericLower.includes(cleaned) || cleaned.includes(genericLower)) {
+        (genericLower && (genericLower.includes(cleaned) || cleaned.includes(genericLower)))) {
       return med.name;
     }
   }
 
-  return cleaned.length > 2 ? cleaned : null;
+  // Strip noise words and match on the name prefix
+  // e.g. "paratsetamol qayerda bor" → "paratsetamol" → "Paratsetamol 200mg"
+  const filtered = cleaned
+    .split(" ")
+    .filter((w) => w && !MED_STOPWORDS.has(w))
+    .join(" ");
+  if (filtered.length >= 3) {
+    const prefix = filtered.split(" ").slice(0, 3).join(" ");
+    for (const med of medicines) {
+      const nameLower = normalize(med.name);
+      const genericLower = normalize(med.genericName);
+      if (nameLower.startsWith(prefix) || (genericLower && genericLower.startsWith(prefix))) {
+        return med.name;
+      }
+    }
+  }
+
+  return cleaned.length > 2 && filtered ? cleaned : null;
 }
 
 function extractMedicineNames(text: string): string[] {
   const names: string[] = [];
+
+  // Multi-word match first (e.g. "vitamin C", "ACC 200", "Diklofenak gel")
+  const multi = bestMedicineMatch(text);
+  if (multi) {
+    names.push(multi.name);
+    return names;
+  }
+
   const words = text.split(/\s+/);
   for (const word of words) {
     if (word.length > 3) {
       for (const med of medicines) {
-        if (fuzzyMatch(word, med.name) || fuzzyMatch(word, med.genericName)) {
-          names.push(med.name);
+        if (fuzzyMatch(word, med.name) || (med.genericName && fuzzyMatch(word, med.genericName))) {
+          if (!names.includes(med.name)) names.push(med.name);
         }
       }
     }
@@ -439,9 +542,12 @@ function detectSymptoms(text: string, lang: Lang): SymptomResult {
   let bodySystem = "general";
   let confidence = 0;
 
+  // Keywords may contain apostrophes ("bosh og'ri") while `text` is normalized
+  // without them — normalize keywords too so Uzbek text matches reliably
   for (const [symptom, data] of Object.entries(SYMPTOM_DB)) {
     for (const keyword of data.keywords) {
-      if (text.includes(keyword)) {
+      const kw = normalize(keyword);
+      if (kw && text.includes(kw)) {
         found.push(symptom);
         bodySystem = data.system;
         confidence = Math.max(confidence, 0.8);
@@ -581,7 +687,7 @@ function scoreMedicine(med: Medicine, terms: string[], userProfile?: { allergies
     if (!term || term.length < 2) continue;
     if (nameNorm.includes(term)) score += 5;
     else if (haystack.includes(term)) score += 2;
-    else if (fuzzyMatch(term, med.name) || fuzzyMatch(term, med.genericName)) score += 3;
+    else if (fuzzyMatch(term, med.name) || (med.genericName && fuzzyMatch(term, med.genericName))) score += 3;
   }
 
   // Penalize if matches user's allergies
@@ -655,7 +761,7 @@ function checkInteractions(medicineNames: string[], userMedications: string[]): 
     [["amoxicillin"], "methotrexate", "Methotrexate zaharlanishi oshishi"],
   ];
 
-  const allMeds = [...medicineNames, ...userMedications].map(normalize);
+  const allMeds = [...medicineNames, ...userMedications].map(normalize).filter(Boolean);
 
   for (const [triggers, danger, warning] of DANGEROUS_COMBOS) {
     const hasTrigger = triggers.some(t => allMeds.some(m => fuzzyMatch(t, m, 0.6)));
@@ -708,6 +814,17 @@ type LangStrings = {
   categoryResults: string;
   contextFollowUp: string;
   priceResults: string;
+  availabilityIntro: string;
+  noAvailability: string;
+  discountsIntro: string;
+  noDiscounts: string;
+  hoursIntro: string;
+  noHours: string;
+  deliveryIntro: string;
+  popularIntro: string;
+  whoAreYou: string;
+  orderIntro: string;
+  noOrders: string;
 };
 
 const strings: Record<Lang, LangStrings> = {
@@ -728,12 +845,23 @@ const strings: Record<Lang, LangStrings> = {
     sideEffectsInfo: "Nojo'ya ta'sirlar:",
     interactionWarning: "⚠️ DIQQAT! Bu dori sizning hozirgi doringiz bilan o'zaro ta'sir qilishi mumkin:",
     allergyWarning: (allergies: string[]) => `🚫 DIQQAT! Sizda ${allergies.join(", ")} allergiyasi bor. Bu dorini ishlatishdan oldin shifokor bilan maslahatlashing!`,
-    conditionWarning: (conditions: string[]) => `⚠️ Sizning ${conditions.join(", ")}} kasalligingizni hisobga oling.`,
+    conditionWarning: (conditions: string[]) => `⚠️ Sizning ${conditions.join(", ")} kasalligingizni hisobga oling.`,
     alternativeFound: "Alternativ dorilar:",
     noAlternative: "Alternativ dori topilmadi.",
     categoryResults: "Kategoriyaga ko'ra natijalar:",
     contextFollowUp: "Avvalgi suhbat bo'yicha:",
     priceResults: "Narxlar solishtirilmoqda:",
+    availabilityIntro: "Quyidagi dorixonalarda mavjud (eng arzoni birinchi):",
+    noAvailability: "Kechirasiz, hozircha bu dorining dorixonalarda mavjudligi haqida ma'lumot topilmadi.",
+    discountsIntro: "Mana hozirgi chegirmadagi dorilar:",
+    noDiscounts: "Hozircha faol chegirmalar topilmadi. Tez orada qaytadan urinib ko'ring!",
+    hoursIntro: "Dorixonalarning ish vaqti:",
+    noHours: "Kechirasiz, bu dorixona haqida ma'lumot topilmadi.",
+    deliveryIntro: "Yetkazib berish xizmati:",
+    popularIntro: "Mana eng mashhur dorilar:",
+    whoAreYou: "Men VitaHub AI yordamchisiman! Quyidagilarda yordam bera olaman:",
+    orderIntro: "Buyurtma holati:",
+    noOrders: "Buyurtmalar haqida ma'lumot topilmadi. Buyurtma ID sini yozing (masalan: ORD-001).",
   },
   ru: {
     welcome: "Здравствуйте! Добро пожаловать в AI-помощник VitaHub. Я помогу найти более 10,000 лекарств. Напишите название лекарства, симптом или болезнь.",
@@ -758,6 +886,17 @@ const strings: Record<Lang, LangStrings> = {
     categoryResults: "Результаты по категории:",
     contextFollowUp: "По предыдущему вопросу:",
     priceResults: "Сравнение цен:",
+    availabilityIntro: "В наличии в следующих аптеках (сначала дешевле):",
+    noAvailability: "К сожалению, информации о наличии этого лекарства в аптеках пока нет.",
+    discountsIntro: "Вот лекарства со скидкой прямо сейчас:",
+    noDiscounts: "Активных скидок пока нет. Попробуйте позже!",
+    hoursIntro: "Часы работы аптек:",
+    noHours: "К сожалению, информации об этой аптеке нет.",
+    deliveryIntro: "Служба доставки:",
+    popularIntro: "Вот самые популярные лекарства:",
+    whoAreYou: "Я AI-помощник VitaHub! Я могу помочь вам с:",
+    orderIntro: "Статус заказа:",
+    noOrders: "Информация о заказах не найдена. Напишите ID заказа (например: ORD-001).",
   },
   en: {
     welcome: "Hello! Welcome to the VitaHub AI assistant. I'll help you find from 10,000+ medicines. Type a medicine name, symptom, or condition.",
@@ -782,6 +921,17 @@ const strings: Record<Lang, LangStrings> = {
     categoryResults: "Results by category:",
     contextFollowUp: "Following up on our previous conversation:",
     priceResults: "Comparing prices:",
+    availabilityIntro: "Available at these pharmacies (cheapest first):",
+    noAvailability: "Sorry, we couldn't find stock information for this medicine right now.",
+    discountsIntro: "Here are the current deals:",
+    noDiscounts: "No active discounts right now. Check back soon!",
+    hoursIntro: "Pharmacy opening hours:",
+    noHours: "Sorry, no information found about this pharmacy.",
+    deliveryIntro: "Delivery service:",
+    popularIntro: "Here are the most popular medicines:",
+    whoAreYou: "I'm the VitaHub AI assistant! I can help you with:",
+    orderIntro: "Order status:",
+    noOrders: "No order info found. Type an order ID (e.g. ORD-001).",
   },
 };
 
@@ -818,19 +968,45 @@ function updateContext(chatId: string, userMsg: string, response: ChatResponse, 
 
 // ─── Main Chat Response ───────────────────────────────────────────
 
-export async function getChatResponse(message: string, chatId = "default"): Promise<ChatResponse> {
+export type UserProfile = {
+  allergies: string[];
+  conditions: string[];
+  medications: string[];
+};
+
+export async function getChatResponse(
+  message: string,
+  chatId = "default",
+  profile?: UserProfile
+): Promise<ChatResponse> {
   await ensureData();
   const lang = detectLang(message);
   const intent = detectIntent(message, lang);
-  const userProfile = loadUserProfile();
+  const userProfile = profile ?? loadUserProfile();
   const context = getContext(chatId);
   const s = strings[lang];
 
   // Check for context follow-up
   const isFollowUp = context.currentTopic && isFollowUpQuestion(message, lang);
 
+  // Resolve pronouns / short follow-ups to the last discussed medicine
+  // e.g. "u qancha turadi?", "its price?", "а сколько стоит?"
+  let resolvedIntent = intent;
+  if (
+    isFollowUp &&
+    resolvedIntent.entities.length === 0 &&
+    context.lastMedicines.length > 0 &&
+    (resolvedIntent.type === "price" ||
+      resolvedIntent.type === "dosage" ||
+      resolvedIntent.type === "side_effects" ||
+      resolvedIntent.type === "alternative" ||
+      resolvedIntent.type === "where_to_buy")
+  ) {
+    resolvedIntent = { ...resolvedIntent, entities: [context.lastMedicines[0]] };
+  }
+
   // Emergency
-  if (intent.type === "emergency") {
+  if (resolvedIntent.type === "emergency") {
     return {
       message: s.emergency,
       urgency: "emergency",
@@ -839,7 +1015,7 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Greeting
-  if (intent.type === "greeting") {
+  if (resolvedIntent.type === "greeting") {
     const response: ChatResponse = {
       message: s.greeting,
       suggestedActions: s.actions,
@@ -849,23 +1025,208 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Thanks
-  if (intent.type === "thanks") {
+  if (resolvedIntent.type === "thanks") {
     return { message: s.thanks };
   }
 
   // Help
-  if (intent.type === "help") {
+  if (resolvedIntent.type === "help") {
     return {
       message: s.greeting,
       suggestedActions: s.actions,
     };
   }
 
+  // Who are you / capabilities
+  if (resolvedIntent.type === "who_are_you") {
+    const capabilities =
+      lang === "uz"
+        ? "• Dori qidirish va narxlarini solishtirish\n• Simptomlar bo'yicha tavsiya\n• Dorixonalarda mavjudlik\n• Chegirmalar va mashhur dorilar\n• Dozalash va nojo'ya ta'sirlar\n• Buyurtma holati"
+        : lang === "ru"
+          ? "• Поиск лекарств и сравнение цен\n• Рекомендации по симптомам\n• Наличие в аптеках\n• Скидки и популярные лекарства\n• Дозировка и побочные эффекты\n• Статус заказа"
+          : "• Find medicines and compare prices\n• Symptom-based recommendations\n• Pharmacy availability\n• Deals and popular medicines\n• Dosage and side effects\n• Order status";
+    return {
+      message: s.whoAreYou + "\n" + capabilities,
+      suggestedActions: s.actions,
+    };
+  }
+
+  // Where to buy / pharmacy availability
+  if (resolvedIntent.type === "where_to_buy") {
+    const query = resolvedIntent.entities.join(" ") || message;
+    const med = bestMedicineMatch(query);
+    if (med) {
+      const offers = (medicinePrices[med.id] || [])
+        .filter((o) => o.isAvailable)
+        .sort((a, b) => a.price - b.price)
+        .slice(0, 3);
+      if (offers.length > 0) {
+        const lines = offers.map((o) => {
+          const ph = pharmacies.find((p) => p.id === o.pharmacyId);
+          const deliveryFee = o.deliveryFee || ph?.deliveryFee;
+          const feeText = deliveryFee > 0 ? formatPrice(lang, deliveryFee) : lang === "uz" ? "bepul" : lang === "ru" ? "бесплатно" : "free";
+          const delivery =
+            lang === "uz" ? `Yetkazish: ${feeText}, ${o.deliveryTime}`
+            : lang === "ru" ? `Доставка: ${feeText}, ${o.deliveryTime}`
+            : `Delivery: ${feeText}, ${o.deliveryTime}`;
+          return `• ${o.pharmacyName} — ${formatPrice(lang, o.price)}${ph?.address ? ` (${ph.address})` : ""}\n  ${delivery}`;
+        });
+        const response: ChatResponse = {
+          message: `${s.availabilityIntro}\n${lines.join("\n")}`,
+          suggestedMedicines: [{
+            slug: med.slug,
+            name: med.name,
+            price: offers[0].price,
+            dosage: med.dosage,
+          }],
+          suggestedActions: s.actions,
+        };
+        updateContext(chatId, message, response, lang);
+        return response;
+      }
+      return { message: `${s.noAvailability} (${med.name})`, suggestedActions: s.actions };
+    }
+  }
+
+  // Discounts / promotions
+  if (resolvedIntent.type === "discounts") {
+    const deals = medicines
+      .filter((m) => (m.discount ?? 0) > 0 || m.discountedPrice)
+      .sort((a, b) => (b.discount ?? 0) - (a.discount ?? 0))
+      .slice(0, 5);
+    const found = deals.length > 0
+      ? deals.map((m) => ({
+          slug: m.slug,
+          name: m.name,
+          price: m.discountedPrice ?? cheapestPrice(m.id),
+          dosage: m.discount ? `${m.discount}% chegirma` : undefined,
+        }))
+      : [];
+    const response: ChatResponse = {
+      message: found.length > 0 ? s.discountsIntro : s.noDiscounts,
+      suggestedMedicines: found,
+      suggestedActions: s.actions,
+    };
+    updateContext(chatId, message, response, lang);
+    return response;
+  }
+
+  // Opening hours
+  if (resolvedIntent.type === "hours") {
+    const query = normalize(message);
+    const ph = pharmacies.find((p) => fuzzyMatch(query, normalize(p.name), 0.5)) || null;
+    if (ph) {
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const dayNames: Record<Lang, string[]> = {
+        uz: ["Yakshanba", "Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"],
+        ru: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+        en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      };
+      const nowDay = new Date().getDay();
+      const hoursLines = days.map((d, i) => {
+        const day = ph.workingHours?.[d];
+        if (!day || !day.isOpen) return `${dayNames[lang][i]}: ${lang === "uz" ? "Yopiq" : lang === "ru" ? "Закрыто" : "Closed"}`;
+        return `${dayNames[lang][i]}: ${day.open} – ${day.close}`;
+      });
+      const openText = ph.isOpen
+        ? lang === "uz" ? "Hozir ochiq ✅" : lang === "ru" ? "Открыто сейчас ✅" : "Open now ✅"
+        : lang === "uz" ? "Hozir yopiq" : lang === "ru" ? "Сейчас закрыто" : "Currently closed";
+      const response: ChatResponse = {
+        message: `${s.hoursIntro} ${ph.name}\n${openText}\n${hoursLines.join("\n")}`,
+        suggestedActions: s.actions,
+      };
+      updateContext(chatId, message, response, lang);
+      return response;
+    }
+    const open24 = pharmacies.filter((p) => p.is24hours).slice(0, 5);
+    if (open24.length > 0) {
+      const names = open24.map((p) => `• ${p.name} (${p.address})`).join("\n");
+      const prefix = lang === "uz" ? "24/7 ishlaydigan dorixonalar:" : lang === "ru" ? "Аптеки, работающие 24/7:" : "24/7 pharmacies:";
+      const response: ChatResponse = {
+        message: `${s.hoursIntro}\n${prefix}\n${names}`,
+        suggestedActions: s.actions,
+      };
+      updateContext(chatId, message, response, lang);
+      return response;
+    }
+    return { message: s.noHours, suggestedActions: s.actions };
+  }
+
+  // Delivery
+  if (resolvedIntent.type === "delivery") {
+    const ph = pharmacies.find((p) => p.offersDelivery) || pharmacies[0];
+    if (ph) {
+      const fee = ph.freeDelivery ? (lang === "uz" ? "Bepul" : lang === "ru" ? "Бесплатно" : "Free") : formatPrice(lang, ph.deliveryFee ?? 0);
+      const minOrder = formatPrice(lang, ph.minimumOrder ?? 0);
+      const line =
+        lang === "uz"
+          ? `• ${ph.name}: yetkazish ${fee}, ${ph.deliveryTime ?? "1-2 soat"}, minimal buyurtma ${minOrder}`
+          : lang === "ru"
+            ? `• ${ph.name}: доставка ${fee}, ${ph.deliveryTime ?? "1-2 часа"}, минимальный заказ ${minOrder}`
+            : `• ${ph.name}: delivery ${fee}, ${ph.deliveryTime ?? "1-2 hours"}, minimum order ${minOrder}`;
+      const response: ChatResponse = {
+        message: `${s.deliveryIntro}\n${line}`,
+        suggestedActions: s.actions,
+      };
+      updateContext(chatId, message, response, lang);
+      return response;
+    }
+    return { message: s.deliveryIntro, suggestedActions: s.actions };
+  }
+
+  // Popular / bestsellers
+  if (resolvedIntent.type === "popular") {
+    const popular = [...medicines]
+      .sort((a, b) => (b.stockQuantity ?? 0) - (a.stockQuantity ?? 0))
+      .slice(0, 5)
+      .map((m) => ({
+        slug: m.slug,
+        name: m.name,
+        price: cheapestPrice(m.id),
+        dosage: m.dosage,
+      }));
+    const response: ChatResponse = {
+      message: s.popularIntro,
+      suggestedMedicines: popular,
+      suggestedActions: s.actions,
+    };
+    updateContext(chatId, message, response, lang);
+    return response;
+  }
+
+  // Order status
+  if (resolvedIntent.type === "order_status") {
+    try {
+      const { orders } = await import("./data");
+      const idMatch = message.match(/\b(ORD[-_ ]?\d+)\b/i);
+      const order = idMatch
+        ? orders.find((o) => normalize(o.id) === normalize(idMatch[1]))
+        : orders[orders.length - 1];
+      if (order) {
+        const statusText =
+          lang === "uz" ? `Buyurtma ${order.id}: ${order.status}\nJami: ${formatPrice(lang, order.total)}`
+          : lang === "ru" ? `Заказ ${order.id}: ${order.status}\nИтого: ${formatPrice(lang, order.total)}`
+          : `Order ${order.id}: ${order.status}\nTotal: ${formatPrice(lang, order.total)}`;
+        const delivery =
+          lang === "uz" ? `Yetkazib berish: ${order.estimatedDelivery}`
+          : lang === "ru" ? `Доставка: ${order.estimatedDelivery}`
+          : `Delivery: ${order.estimatedDelivery}`;
+        const response: ChatResponse = {
+          message: `${s.orderIntro}\n${statusText}\n${delivery}`,
+          suggestedActions: s.actions,
+        };
+        updateContext(chatId, message, response, lang);
+        return response;
+      }
+    } catch {}
+    return { message: s.noOrders, suggestedActions: s.actions };
+  }
+
   // Symptom-based recommendation
-  if (intent.type === "symptom" && intent.entities.length > 0) {
-    const primarySymptom = intent.entities[0];
+  if (resolvedIntent.type === "symptom" && resolvedIntent.entities.length > 0) {
+    const primarySymptom = resolvedIntent.entities[0];
     const symptomMeds = SYMPTOM_MEDS[primarySymptom]?.[lang] || SYMPTOM_MEDS[primarySymptom]?.["en"] || [];
-    const found = symptomMeds.length > 0 ? findMedicines(symptomMeds.join(" "), lang, 4, userProfile) : findMedicines(intent.entities.join(" "), lang, 4, userProfile);
+    const found = symptomMeds.length > 0 ? findMedicines(symptomMeds.join(" "), lang, 4, userProfile) : findMedicines(resolvedIntent.entities.join(" "), lang, 4, userProfile);
 
     let message = s.symptom;
 
@@ -898,8 +1259,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Price query
-  if (intent.type === "price") {
-    const query = intent.entities.length > 0 ? intent.entities.join(" ") : message;
+  if (resolvedIntent.type === "price") {
+    const query = resolvedIntent.entities.length > 0 ? resolvedIntent.entities.join(" ") : message;
     const found = findMedicines(query, lang, 4, userProfile);
     const response: ChatResponse = {
       message: (s.priceResults as string) + "\n" + (s.medicineFound as (n: number) => string)(found.length),
@@ -914,8 +1275,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Dosage query
-  if (intent.type === "dosage") {
-    const query = intent.entities.length > 0 ? intent.entities.join(" ") : message;
+  if (resolvedIntent.type === "dosage") {
+    const query = resolvedIntent.entities.length > 0 ? resolvedIntent.entities.join(" ") : message;
     const found = findMedicines(query, lang, 2, userProfile);
     if (found.length > 0) {
       const med = found[0];
@@ -939,8 +1300,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Side effects query
-  if (intent.type === "side_effects") {
-    const query = intent.entities.length > 0 ? intent.entities.join(" ") : message;
+  if (resolvedIntent.type === "side_effects") {
+    const query = resolvedIntent.entities.length > 0 ? resolvedIntent.entities.join(" ") : message;
     const found = findMedicines(query, lang, 2, userProfile);
     if (found.length > 0) {
       const medData = medicines.find(m => m.name === found[0].name);
@@ -961,9 +1322,9 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Interaction check
-  if (intent.type === "interaction_check") {
-    if (userProfile?.medications && intent.entities.length > 0) {
-      const warnings = checkInteractions(intent.entities, userProfile.medications);
+  if (resolvedIntent.type === "interaction_check") {
+    if (userProfile?.medications && resolvedIntent.entities.length > 0) {
+      const warnings = checkInteractions(resolvedIntent.entities, userProfile.medications);
       if (warnings.length > 0) {
         const response: ChatResponse = {
           message: s.interactionWarning + "\n\n" + warnings.join("\n"),
@@ -984,8 +1345,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Category search
-  if (intent.type === "category" && intent.entities.length > 0) {
-    const catName = intent.entities[0];
+  if (resolvedIntent.type === "category" && resolvedIntent.entities.length > 0) {
+    const catName = resolvedIntent.entities[0];
     const found = medicines
       .filter(m => fuzzyMatch(normalize(m.category), normalize(catName), 0.5))
       .slice(0, 6)
@@ -1005,8 +1366,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Alternative search
-  if (intent.type === "alternative" && intent.entities.length > 0) {
-    const query = intent.entities.join(" ");
+  if (resolvedIntent.type === "alternative" && resolvedIntent.entities.length > 0) {
+    const query = resolvedIntent.entities.join(" ");
     const found = findMedicines(query, lang, 6, userProfile);
     if (found.length > 0) {
       const response: ChatResponse = {
@@ -1020,8 +1381,8 @@ export async function getChatResponse(message: string, chatId = "default"): Prom
   }
 
   // Medicine search
-  if (intent.type === "medicine_search") {
-    const query = intent.entities.length > 0 ? intent.entities.join(" ") : message;
+  if (resolvedIntent.type === "medicine_search") {
+    const query = resolvedIntent.entities.length > 0 ? resolvedIntent.entities.join(" ") : message;
     const found = findMedicines(query, lang, 4, userProfile);
 
     let messageText = (s.medicineFound as (n: number) => string)(found.length);
