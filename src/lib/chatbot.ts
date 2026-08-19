@@ -513,7 +513,7 @@ const SYMPTOM_DB: Record<string, { keywords: string[]; system: string; severity:
   stomachache: { keywords: ["qorin og'ri", "stomach", "живот", "abdom"], system: "digestive", severity: "medium" },
 
   // Cardiovascular
-  chest_pain: { keywords: ["ko'krak og'ri", "chest pain", "грудная боль", "angina pectoris"], system: "cardiovascular", severity: "emergency" },
+  chest_pain: { keywords: ["ko'krak og'ri", "chest pain", "грудная боль", "angina pectoris", "yurak og'ri", "yurak xuruj"], system: "cardiovascular", severity: "emergency" },
   palpitations: { keywords: ["yurak urish", "palpitation", "тахикард", "arrhythm"], system: "cardiovascular", severity: "high" },
   high_blood_pressure: { keywords: ["qon bosim yuqori", "hypertension", "гипертония", "high blood pressure"], system: "cardiovascular", severity: "high" },
 
@@ -543,11 +543,12 @@ function detectSymptoms(text: string, lang: Lang): SymptomResult {
   let confidence = 0;
 
   // Keywords may contain apostrophes ("bosh og'ri") while `text` is normalized
-  // without them — normalize keywords too so Uzbek text matches reliably
+  // without them — normalize keywords too so Uzbek text matches reliably.
+  // Uzbek suffixation ("ko'kragim" vs "ko'krak") is handled by prefix/word matching.
   for (const [symptom, data] of Object.entries(SYMPTOM_DB)) {
     for (const keyword of data.keywords) {
       const kw = normalize(keyword);
-      if (kw && text.includes(kw)) {
+      if (kw && symptomKeywordMatch(text, kw)) {
         found.push(symptom);
         bodySystem = data.system;
         confidence = Math.max(confidence, 0.8);
@@ -560,6 +561,38 @@ function detectSymptoms(text: string, lang: Lang): SymptomResult {
   }
 
   return { symptoms: found, bodySystem, severity: maxSeverity, confidence };
+}
+
+function wordClose(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (a.length < 3 || b.length < 3) return false;
+
+  // Common-prefix ratio tolerates Uzbek suffixation / verb forms:
+  // "kokrak"/"kokragim" share "kokra" (5/6) → close; "bosh"/"boshim" (4/5) → close
+  const max = Math.min(a.length, b.length);
+  let p = 0;
+  while (p < max && a[p] === b[p]) p++;
+  if (p >= Math.ceil(max * 0.6)) return true;
+
+  return fuzzyMatch(a, b, 0.7);
+}
+
+function symptomKeywordMatch(text: string, keyword: string): boolean {
+  // Exact substring first (fast path)
+  if (text.includes(keyword)) return true;
+
+  // Multi-word loose match: every keyword word must be "close" to some text word —
+  // "ko'kragim og'riyapti" matches "ko'krak og'ri"
+  const kwWords = keyword.split(" ").filter(Boolean);
+  const textWords = text.split(" ").filter(Boolean);
+  if (kwWords.length > 1) {
+    return kwWords.every((kwWord) =>
+      textWords.some((tw) => wordClose(kwWord, tw))
+    );
+  }
+
+  // Single word: allow prefix/stem matching for suffixes ("aylanyapti" ≈ "aylanish")
+  return textWords.some((tw) => wordClose(keyword, tw));
 }
 
 function severityRank(s: string): number {
@@ -1071,8 +1104,20 @@ export async function getChatResponse(
             : `Delivery: ${feeText}, ${o.deliveryTime}`;
           return `• ${o.pharmacyName} — ${formatPrice(lang, o.price)}${ph?.address ? ` (${ph.address})` : ""}\n  ${delivery}`;
         });
+        let msg = `${s.availabilityIntro}\n${lines.join("\n")}`;
+        if (med.prescriptionRequired) {
+          msg +=
+            lang === "uz"
+              ? "\n\nℹ️ Bu dori retsept bilan beriladi."
+              : lang === "ru"
+                ? "\n\nℹ️ Это лекарство отпускается по рецепту."
+                : "\n\nℹ️ This medicine requires a prescription.";
+        }
+        if (userProfile?.allergies?.some((a) => fuzzyMatch(a, med.name, 0.5) || fuzzyMatch(a, med.genericName ?? "", 0.5))) {
+          msg += "\n\n" + s.allergyWarning(userProfile.allergies);
+        }
         const response: ChatResponse = {
-          message: `${s.availabilityIntro}\n${lines.join("\n")}`,
+          message: msg,
           suggestedMedicines: [{
             slug: med.slug,
             name: med.name,
@@ -1084,7 +1129,21 @@ export async function getChatResponse(
         updateContext(chatId, message, response, lang);
         return response;
       }
-      return { message: `${s.noAvailability} (${med.name})`, suggestedActions: s.actions };
+
+      // Medicine found but no stock → add safety notes
+      let note = `${s.noAvailability} (${med.name})`;
+      if (med.prescriptionRequired) {
+        note +=
+          lang === "uz"
+            ? "\n\nℹ️ Bu dori retsept bilan beriladi — shifokor ko'rigidan o'ting."
+            : lang === "ru"
+              ? "\n\nℹ️ Это лекарство отпускается по рецепту — обратитесь к врачу."
+              : "\n\nℹ️ This medicine requires a prescription — see a doctor.";
+      }
+      if (userProfile?.allergies?.some((a) => fuzzyMatch(a, med.name, 0.5) || fuzzyMatch(a, med.genericName ?? "", 0.5))) {
+        note += "\n\n" + s.allergyWarning(userProfile.allergies);
+      }
+      return { message: note, suggestedActions: s.actions };
     }
   }
 
@@ -1228,13 +1287,13 @@ export async function getChatResponse(
     const symptomMeds = SYMPTOM_MEDS[primarySymptom]?.[lang] || SYMPTOM_MEDS[primarySymptom]?.["en"] || [];
     const found = symptomMeds.length > 0 ? findMedicines(symptomMeds.join(" "), lang, 4, userProfile) : findMedicines(resolvedIntent.entities.join(" "), lang, 4, userProfile);
 
-    let message = s.symptom;
+    let reply = s.symptom;
 
     // Check interactions
     if (userProfile?.medications && found.length > 0) {
       const warnings = checkInteractions(found.map(m => m.name), userProfile.medications);
       if (warnings.length > 0) {
-        message += "\n\n" + warnings.join("\n");
+        reply += "\n\n" + warnings.join("\n");
       }
     }
 
@@ -1244,17 +1303,37 @@ export async function getChatResponse(
         userProfile!.allergies.some(a => fuzzyMatch(a, m.name, 0.5))
       );
       if (allergyMeds.length > 0) {
-        message += "\n\n" + s.allergyWarning(userProfile.allergies);
+        reply += "\n\n" + s.allergyWarning(userProfile.allergies);
       }
     }
 
+    // Severity → urgency (safety-critical: e.g. chest pain must trigger 103).
+    // NOTE: use the user's raw `message` here — `reply` is the bot's own text.
+    const severity = detectSymptoms(normalize(message), lang).severity;
+    if (severity === "emergency") {
+      reply = s.emergency + "\n\n" + reply;
+    } else if (severity === "high") {
+      const urgentNote =
+        lang === "uz" ? "⚠️ Tez orada shifokor bilan maslahatlashing."
+        : lang === "ru" ? "⚠️ Как можно скорее обратитесь к врачу."
+        : "⚠️ See a doctor as soon as possible.";
+      reply = urgentNote + "\n\n" + reply;
+    }
+    const urgentActions =
+      severity === "emergency"
+        ? [lang === "uz" ? "103 - Tez yordam" : lang === "ru" ? "103 - Скорая" : "103 - Emergency"]
+        : severity === "high"
+          ? [lang === "uz" ? "Shifokor topish" : lang === "ru" ? "Найти врача" : "Find a doctor"]
+          : [];
+
     const response: ChatResponse = {
-      message,
+      message: reply,
       suggestedMedicines: found,
-      suggestedActions: s.actions,
+      suggestedActions: [...urgentActions, ...s.actions],
       followUpQuestions: generateFollowUpQuestions(primarySymptom, lang),
+      ...(severity !== "low" ? { urgency: severity } : {}),
     };
-    updateContext(chatId, message, response, lang);
+    updateContext(chatId, reply, response, lang);
     return response;
   }
 
