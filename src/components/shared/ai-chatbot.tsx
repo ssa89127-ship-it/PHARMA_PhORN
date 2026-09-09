@@ -231,13 +231,13 @@ export function AIChatbot() {
                     animate={{ opacity: 1, scale: 1 }}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium",
-                      urgency === "emergency" && "bg-red-500/10 text-red-600 border border-red-200",
+                      urgency === "emergency" && "bg-red-500/10 text-red-600 border border-red-200 animate-pulse",
                       urgency === "high" && "bg-orange-500/10 text-orange-600 border border-orange-200",
                       urgency === "medium" && "bg-yellow-500/10 text-yellow-600 border border-yellow-200",
                     )}
                   >
                     <AlertTriangle className="w-4 h-4" />
-                    {urgency === "emergency" ? "Emergency — Call 103!" : urgency === "high" ? "Consult a doctor" : "Monitor symptoms"}
+                    {urgency === "emergency" ? t("chatbot.emergencyBadge") : urgency === "high" ? t("chatbot.highBadge") : t("chatbot.mediumBadge")}
                   </motion.div>
                 )}
 
@@ -258,7 +258,7 @@ export function AIChatbot() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={spring} className="space-y-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                       <Pill className="w-3.5 h-3.5" />
-                      Recommended medicines
+                      {t("chatbot.recommendedMedicines")}
                     </p>
                     {suggestedMedicines.map((med, i) => (
                       <motion.div
@@ -286,7 +286,7 @@ export function AIChatbot() {
                             )}
                             {med.sideEffects && med.sideEffects.length > 0 && (
                               <p className="text-[10px] text-muted-foreground/60 mt-0.5 truncate">
-                                Side effects: {med.sideEffects.join(", ")}
+                                {t("chatbot.sideEffects")}: {med.sideEffects.join(", ")}
                               </p>
                             )}
                             {med.warning && (
@@ -327,7 +327,7 @@ export function AIChatbot() {
                     <div className="bg-muted/50 rounded-2xl rounded-tl-sm px-4 py-3 border border-border/30">
                       <div className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span className="text-xs text-muted-foreground">Analyzing...</span>
+                        <span className="text-xs text-muted-foreground">{t("chatbot.analyzing")}</span>
                       </div>
                     </div>
                   </motion.div>
