@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -36,7 +36,6 @@ import {
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import type { Medicine, Category, MedicinePrice } from "@/types";
-import { useDataLoader } from "@/lib/data-loader";
 
 const categoryFilterMap: Record<string, string[]> = {
   "Og'riq qoldiruvchi": ["Og'riq qoldiruvchi"],
@@ -110,11 +109,22 @@ export default function MedicinesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceModalMedicine, setPriceModalMedicine] = useState<Medicine | null>(null);
-  const { data, isLoading } = useDataLoader();
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [medicinePrices, setMedicinePrices] = useState<Record<string, MedicinePrice[]>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  const medicines = data?.medicines ?? [];
-  const categories = data?.categories ?? [];
-  const medicinePrices = data?.medicinePrices ?? {};
+  useEffect(() => {
+    fetch("/api/medicines")
+      .then((res) => res.json())
+      .then((data) => {
+        setMedicines(data.medicines || []);
+        setCategories(data.categories || []);
+        setMedicinePrices(data.medicinePrices || {});
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+  }, []);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};

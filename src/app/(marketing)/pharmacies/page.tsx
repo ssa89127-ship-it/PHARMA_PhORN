@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -23,7 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { useDataLoader } from "@/lib/data-loader";
 import type { MapPharmacy } from "@/components/shared/pharmacy-map";
 import type { Pharmacy } from "@/types";
 
@@ -66,13 +65,23 @@ const cardVariants = {
 
 export default function PharmaciesPage() {
   const { t } = useLanguage();
-  const { data, isLoading } = useDataLoader();
-  const pharmacies = data?.pharmacies ?? [];
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [mapPharmacy, setMapPharmacy] = useState<MapPharmacy | null>(null);
   const [showFullMap, setShowFullMap] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/pharmacies")
+      .then((res) => res.json())
+      .then((data) => {
+        setPharmacies(data.pharmacies || []);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
+  }, []);
 
   if (isLoading) {
     return (
