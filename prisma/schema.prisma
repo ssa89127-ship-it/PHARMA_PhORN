@@ -120,6 +120,8 @@ model User {
   pharmacyEmployees  PharmacyEmployee[]
   doctor             Doctor?
   cart               Cart?
+  pharmacies         Pharmacy[]
+  doctors            Doctor[]
 }
 
 model Pharmacy {
@@ -153,7 +155,7 @@ model Pharmacy {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user        User?          @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
   medicines   PharmacyMedicine[]
   orders      Order[]
   employees   PharmacyEmployee[]
@@ -255,7 +257,7 @@ model Doctor {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user         User?         @relation(fields: [userId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
   appointments Appointment[]
   timeSlots    TimeSlot[]
   reviews      Review[]
