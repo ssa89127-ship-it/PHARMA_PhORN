@@ -64,7 +64,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { cn, formatPrice, formatDate } from "@/lib/utils";
+import { cn, formatPrice, formatDate, formatDateTime, formatNumber } from "@/lib/utils";
 import { useDataLoader } from "@/lib/data-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -257,7 +257,7 @@ function DashboardTab() {
         />
         <StatCard
           title={t("dashboard.admin.totalOrders")}
-          value={dashboardStats.totalOrders.toLocaleString()}
+          value={formatNumber(dashboardStats.totalOrders)}
           icon={ShoppingCart}
           trend="up"
           trendValue="+8.2%"
@@ -265,7 +265,7 @@ function DashboardTab() {
         />
         <StatCard
           title={t("dashboard.admin.totalCustomers")}
-          value={dashboardStats.totalCustomers.toLocaleString()}
+          value={formatNumber(dashboardStats.totalCustomers)}
           icon={Users}
           trend="up"
           trendValue="+15.3%"
@@ -281,7 +281,7 @@ function DashboardTab() {
         />
         <StatCard
           title={t("dashboard.admin.totalMedicines")}
-          value={dashboardStats.totalMedicines.toLocaleString()}
+          value={formatNumber(dashboardStats.totalMedicines)}
           icon={Pill}
           trend="up"
           trendValue="+45"
@@ -943,7 +943,7 @@ function OrdersTabSection() {
                             <div className="space-y-0.5">
                               <p className="text-sm font-medium capitalize">{step.description}</p>
                               <p className="text-xs text-muted-foreground">
-                                {new Date(step.timestamp).toLocaleString()}
+                                {formatDateTime(step.timestamp)}
                                 {step.location && ` • ${step.location}`}
                               </p>
                             </div>

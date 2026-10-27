@@ -83,14 +83,6 @@ export default function PharmaciesPage() {
       .catch(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   const filteredPharmacies = useMemo(() => {
     let result = [...pharmacies];
 
@@ -131,6 +123,14 @@ export default function PharmaciesPage() {
   const filterOptions = useMemo(() =>
     filterKeys.map((f) => ({ value: f.value, label: t(f.key) })),
   [t]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden">

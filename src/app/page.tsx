@@ -52,7 +52,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, formatNumber } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   homepageDoctors as doctors,
@@ -116,7 +116,7 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
     requestAnimationFrame(animate);
   }, [isInView, target]);
 
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+  return <span ref={ref}>{formatNumber(count)}{suffix}</span>;
 }
 
 export default function HomePage() {

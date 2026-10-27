@@ -21,7 +21,7 @@ import {
   TIER_LABELS,
 } from "@/lib/loyalty";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { cn } from "@/lib/utils";
+import { cn, formatNumber, formatDate } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 
@@ -92,7 +92,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>{points.toLocaleString()} {t("loyalty.points")}</span>
+                    <span>{formatNumber(points)} {t("loyalty.points")}</span>
                     <span>{tier.discount}% {t("loyalty.discount")}</span>
                   </div>
                   <div className="h-2 bg-white/20 rounded-full overflow-hidden">
@@ -104,7 +104,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                     />
                   </div>
                   <p className="text-xs text-white/70">
-                    {t("loyalty.nextTier")} {currentThreshold.toLocaleString()} {t("loyalty.points")}
+                    {t("loyalty.nextTier")} {formatNumber(currentThreshold)} {t("loyalty.points")}
                   </p>
                 </div>
               </CardContent>
@@ -120,7 +120,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <Star className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <div className="text-2xl font-bold">{points.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{formatNumber(points)}</div>
                   <p className="text-xs text-muted-foreground">{t("loyalty.totalPoints")}</p>
                 </CardContent>
               </Card>
@@ -128,7 +128,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                 <CardContent className="p-4 text-center">
                   <TrendingUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
                   <div className="text-2xl font-bold">
-                    {history.filter((h) => h.type === "earn").reduce((sum, h) => sum + h.points, 0).toLocaleString()}
+                    {formatNumber(history.filter((h) => h.type === "earn").reduce((sum, h) => sum + h.points, 0))}
                   </div>
                   <p className="text-xs text-muted-foreground">{t("loyalty.earned")}</p>
                 </CardContent>
@@ -137,7 +137,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                 <CardContent className="p-4 text-center">
                   <TrendingDown className="w-8 h-8 text-orange-500 mx-auto mb-2" />
                   <div className="text-2xl font-bold">
-                    {history.filter((h) => h.type === "spend").reduce((sum, h) => sum + h.points, 0).toLocaleString()}
+                    {formatNumber(history.filter((h) => h.type === "spend").reduce((sum, h) => sum + h.points, 0))}
                   </div>
                   <p className="text-xs text-muted-foreground">{t("loyalty.spent")}</p>
                 </CardContent>
@@ -174,7 +174,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                           <div>
                             <p className="text-sm font-medium">{item.description}</p>
                             <p className="text-xs text-muted-foreground">
-                              {new Date(item.createdAt).toLocaleDateString()}
+                              {formatDate(item.createdAt)}
                             </p>
                           </div>
                         </div>
@@ -182,7 +182,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                           "font-mono font-bold text-sm",
                           item.type === "earn" ? "text-green-600" : "text-orange-600"
                         )}>
-                          {item.type === "earn" ? "+" : "-"}{item.points.toLocaleString()}
+                          {item.type === "earn" ? "+" : "-"}{formatNumber(item.points)}
                         </span>
                       </div>
                     ))}
@@ -212,7 +212,7 @@ const LoyaltyPage = memo(function LoyaltyPage() {
                       className="h-auto py-4"
                     >
                       <div className="text-center">
-                        <div className="text-lg font-bold">{amount.toLocaleString()}</div>
+                        <div className="text-lg font-bold">{formatNumber(amount)}</div>
                         <div className="text-xs text-muted-foreground">{t("loyalty.points")}</div>
                       </div>
                     </Button>

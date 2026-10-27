@@ -23,6 +23,7 @@ import {
   type Referral,
 } from "@/lib/referral";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { formatNumber } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 
@@ -87,7 +88,7 @@ const ReferralPage = memo(function ReferralPage() {
               <CardContent className="p-6">
                 <div className="text-center mb-4">
                   <div className="text-4xl font-bold text-primary mb-1">
-                    {REFERRAL_REWARD.toLocaleString()}
+                    {formatNumber(REFERRAL_REWARD)}
                   </div>
                   <p className="text-sm text-muted-foreground">{t("referral.perReferral")}</p>
                 </div>
@@ -165,7 +166,7 @@ const ReferralPage = memo(function ReferralPage() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <Gift className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold">{stats.totalRewards.toLocaleString()}</div>
+                  <div className="text-2xl font-bold">{formatNumber(stats.totalRewards)}</div>
                   <p className="text-xs text-muted-foreground">{t("referral.pointsEarned")}</p>
                 </CardContent>
               </Card>

@@ -34,7 +34,7 @@ import {
   type NotificationItem,
 } from "@/lib/notifications";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { cn } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 
@@ -189,7 +189,7 @@ const NotificationsPage = memo(function NotificationsPage() {
                                   </div>
                                   <p className="text-sm text-muted-foreground mt-1">{item.message}</p>
                                   <p className="text-xs text-muted-foreground mt-2">
-                                    {new Date(item.createdAt).toLocaleString()}
+                                    {formatDateTime(item.createdAt)}
                                   </p>
                                 </div>
                                 {!item.read && (

@@ -73,6 +73,16 @@ export interface Medicine {
   alternatives: string[];
   createdAt: string;
   updatedAt: string;
+  // Additional fields from generated data
+  isPopular?: boolean;
+  isFeatured?: boolean;
+  country?: string;
+  unit?: string;
+  packSize?: string;
+  minimumOrder?: number;
+  oldPrice?: number;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export type MedicineForm = "tablet" | "capsule" | "syrup" | "cream" | "injection" | "drops" | "inhaler" | "spray" | "patch" | "ointment";

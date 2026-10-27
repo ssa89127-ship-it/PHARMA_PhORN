@@ -44,5 +44,5 @@ export async function processRefund(paymentIntentId: string, amount?: number): P
 }
 
 export function formatStripePrice(amount: number): string {
-  return `${(amount / 100).toLocaleString("uz-UZ")} so'm`;
+  return `${(amount / 100).toLocaleString("en-US")} so'm`;
 }

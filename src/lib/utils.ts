@@ -5,8 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Locale used for every number/date we render.
+ *
+ * We deliberately do NOT use "uz-UZ": ICU data for the `uz` locale differs
+ * between runtimes (Node resolves it to the Russian-style group separator
+ * U+00A0, Chrome resolves it to the root comma separator), which produces a
+ * different string on the server than in the browser and breaks hydration
+ * (React error #418). "en-US" is identical in every ICU build and matches
+ * the grouping CLDR defines for `uz`.
+ */
+const LOCALE = "en-US";
+
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(LOCALE).format(value);
+}
+
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("uz-UZ", {
+  return new Intl.NumberFormat(LOCALE, {
     style: "decimal",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
@@ -24,14 +40,14 @@ export function formatPriceShort(price: number): string {
 }
 
 export function formatUSD(price: number): string {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(LOCALE, {
     style: "currency",
     currency: "USD",
   }).format(price);
 }
 
 export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(LOCALE, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -39,7 +55,7 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(LOCALE, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -49,7 +65,7 @@ export function formatDateTime(date: string | Date): string {
 }
 
 export function formatTime(date: string | Date): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(LOCALE, {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(date));

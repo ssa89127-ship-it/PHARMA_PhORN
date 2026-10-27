@@ -32,7 +32,7 @@ import {
   type PaymentProvider,
 } from "@/lib/payments";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, formatDateTime } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 
@@ -212,7 +212,7 @@ const PaymentHistoryPage = memo(function PaymentHistoryPage() {
                                 {tx.cardLast4 ? `**** ${tx.cardLast4}` : tx.phone || tx.orderId}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {new Date(tx.createdAt).toLocaleString()}
+                                {formatDateTime(tx.createdAt)}
                               </p>
                             </div>
                             <div className="text-right shrink-0">

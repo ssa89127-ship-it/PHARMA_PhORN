@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Medicine, Category, MedicinePrice, Pharmacy, Doctor } from "@/types";
+import type { Category, Pharmacy, Doctor, Medicine, MedicinePrice } from "@/types";
 
 interface CachedData {
   medicines: Medicine[];
@@ -27,12 +27,40 @@ async function loadData(): Promise<CachedData> {
   if (loadingPromise) return loadingPromise;
 
   loadingPromise = (async () => {
+    // Static demo data - small enough to ship in the client bundle.
     const mod = await import("./data");
+
+    // Fetch the medicine catalog (slim version) and pharmacies from the API.
+    let medicines: Medicine[] = [];
+    let medicinePrices: Record<string, MedicinePrice[]> = {};
+    let pharmacies: Pharmacy[] = [];
+
+    try {
+      const [medsRes, pharmsRes] = await Promise.all([
+        fetch("/api/medicines?limit=10000"), // full slim catalog
+        fetch("/api/pharmacies"),
+      ]);
+
+      if (medsRes.ok) {
+        const body = await medsRes.json();
+        medicines = body.medicines ?? [];
+      }
+      if (pharmsRes.ok) {
+        const body = await pharmsRes.json();
+        pharmacies = body.pharmacies ?? [];
+      }
+      // medicinePrices stays empty - pages that need prices should use useMedicinePrices hook
+    } catch {
+      medicines = [];
+      medicinePrices = {};
+      pharmacies = [];
+    }
+
     cachedData = {
-      medicines: mod.medicines,
+      medicines,
       categories: mod.categories,
-      medicinePrices: mod.medicinePrices,
-      pharmacies: mod.pharmacies,
+      medicinePrices,
+      pharmacies,
       doctors: mod.doctors,
       orders: mod.orders,
       appointments: mod.appointments,

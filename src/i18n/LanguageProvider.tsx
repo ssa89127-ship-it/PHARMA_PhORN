@@ -55,7 +55,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const formatCurrency = (amount: number): string => {
     if (language === "uz") {
-      return new Intl.NumberFormat("uz-UZ").format(amount) + " so'm";
+      return new Intl.NumberFormat("en-US").format(amount) + " so'm";
     } else if (language === "ru") {
       return new Intl.NumberFormat("ru-RU").format(amount) + " сум";
     } else {

@@ -240,7 +240,7 @@ export function PrescriptionsSection() {
                           {rx.doctorName && ` • ${rx.doctorName}`}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(rx.createdAt).toLocaleDateString(language === "uz" ? "uz-UZ" : language === "ru" ? "ru-RU" : "en-GB")}
+                          {new Date(rx.createdAt).toLocaleDateString(language === "uz" ? "en-US" : language === "ru" ? "ru-RU" : "en-GB")}
                         </p>
                       </div>
                       <Button

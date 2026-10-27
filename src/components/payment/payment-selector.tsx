@@ -24,7 +24,7 @@ import {
   type PaymentMethod,
 } from "@/lib/payments";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, formatNumber } from "@/lib/utils";
 
 const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
 
@@ -130,7 +130,7 @@ export const PaymentSelector = memo(function PaymentSelector({
 
                 {fee > 0 && (
                   <Badge variant="outline" className="text-[9px] mt-1">
-                    +{fee.toLocaleString()} {t("payment.fee")}
+                    +{formatNumber(fee)} {t("payment.fee")}
                   </Badge>
                 )}
                 {fee === 0 && method.provider !== "cash" && (

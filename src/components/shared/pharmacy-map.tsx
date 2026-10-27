@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Phone, Navigation } from "lucide-react";
+import { SafeMapContainer } from "./safe-map-container";
 
 export interface MapPharmacy {
   id: string;
@@ -59,8 +60,7 @@ function FitBounds({ pharmacies }: { pharmacies: MapPharmacy[] }) {
   return null;
 }
 
-function LocateButton() {
-  const map = useMap();
+function LocateButton({ map }: { map: L.Map | null }) {
   const locate = () => {
     if (!navigator.geolocation || !map) return;
     navigator.geolocation.getCurrentPosition(
@@ -96,9 +96,15 @@ export default function PharmacyMap({
   showDirections = true,
 }: PharmacyMapProps) {
   const hasCoords = pharmacies.some((p) => p.lat && p.lng);
+  // The Leaflet map instance is created inside <SafeMapContainer>. We keep it in
+  // state so the locate button (rendered OUTSIDE the map) can use it - useMap()
+  // would throw outside a <MapContainer> descendant.
+  const [map, setMap] = useState<L.Map | null>(null);
+
   return (
     <div className={`relative overflow-hidden rounded-xl border border-border/50 ${className}`} style={{ height, minHeight: 200 }}>
-      <MapContainer
+      <SafeMapContainer
+        onMapReady={setMap}
         center={center}
         zoom={zoom}
         scrollWheelZoom={false}
@@ -173,8 +179,8 @@ export default function PharmacyMap({
               )}
           </>
         )}
-      </MapContainer>
-      {showLocateButton && <LocateButton />}
+      </SafeMapContainer>
+      {showLocateButton && <LocateButton map={map} />}
     </div>
   );
 }

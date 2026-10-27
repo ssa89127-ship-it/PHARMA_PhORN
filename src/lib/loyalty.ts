@@ -3,6 +3,8 @@
  * Points system for repeat customers
  */
 
+import { formatNumber } from "./utils";
+
 export interface LoyaltyTransaction {
   id: string;
   type: "earn" | "spend";
@@ -54,7 +56,7 @@ export function addLoyaltyTransaction(type: "earn" | "spend", points: number, de
 export function earnPoints(amount: number): number {
   const points = Math.floor(amount / 1000); // 1 point per 1,000 so'm
   if (points > 0) {
-    addLoyaltyTransaction("earn", points, `Buyurtma uchun: ${amount.toLocaleString()} so'm`);
+    addLoyaltyTransaction("earn", points, `Buyurtma uchun: ${formatNumber(amount)} so'm`);
   }
   return points;
 }

@@ -12,30 +12,13 @@
  * - 3-language support (UZ/RU/EN) with cross-language synonyms
  */
 
-import type { Medicine } from "@/types";
+import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
 import { getFamilyMembers } from "./family";
+import { medicines as catalogMedicines, medicinePrices as catalogPrices, pharmacies as catalogPharmacies } from "./catalog.server";
 
-let medicines: Medicine[] = [];
-let medicinePrices: Record<string, any[]> = {};
-let _dataLoaded = false;
-
-async function ensureData() {
-  if (_dataLoaded) return;
-  try {
-    const mod = await import("./data");
-    medicines = mod.medicines;
-    medicinePrices = mod.medicinePrices as any;
-    pharmacies = mod.pharmacies;
-    _dataLoaded = true;
-  } catch (error) {
-    console.error("Failed to load data for chatbot:", error);
-    medicines = [];
-    medicinePrices = {};
-    pharmacies = [];
-  }
-}
-
-let pharmacies: any[] = [];
+let medicines: Medicine[] = catalogMedicines;
+let medicinePrices: Record<string, MedicinePrice[]> = catalogPrices;
+let pharmacies: Pharmacy[] = catalogPharmacies;
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -1012,7 +995,7 @@ export async function getChatResponse(
   chatId = "default",
   profile?: UserProfile
 ): Promise<ChatResponse> {
-  await ensureData();
+  
   const lang = detectLang(message);
   const intent = detectIntent(message, lang);
   const userProfile = profile ?? loadUserProfile();
