@@ -116,7 +116,6 @@ model User {
   reviews            Review[]
   notifications      Notification[]
   loyaltyPoints      LoyaltyPoints?
-  pharmacy           Pharmacy?
   pharmacyEmployees  PharmacyEmployee[]
   doctor             Doctor?
   cart               Cart?
