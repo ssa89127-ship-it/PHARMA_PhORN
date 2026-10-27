@@ -106,16 +106,20 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  addresses      Address[]
-  paymentMethods PaymentMethod[]
-  orders         Order[]
-  appointments   Appointment[]
-  medicalRecords MedicalRecord[]
-  reviews        Review[]
-  notifications  Notification[]
-  loyaltyPoints  LoyaltyPoints?
+  accounts           Account[]
+  sessions           Session[]
+  addresses          Address[]
+  paymentMethods     PaymentMethod[]
+  orders             Order[]
+  appointments       Appointment[]
+  medicalRecords     MedicalRecord[]
+  reviews            Review[]
+  notifications      Notification[]
+  loyaltyPoints      LoyaltyPoints?
+  pharmacy           Pharmacy?
+  pharmacyEmployees  PharmacyEmployee[]
+  doctor             Doctor?
+  cart               Cart?
 }
 
 model Pharmacy {
@@ -153,6 +157,7 @@ model Pharmacy {
   medicines   PharmacyMedicine[]
   orders      Order[]
   employees   PharmacyEmployee[]
+  reviews     Review[]
 }
 
 model PharmacyEmployee {
@@ -211,6 +216,7 @@ model Medicine {
   pharmacies  PharmacyMedicine[]
   orderItems  OrderItem[]
   reviews     Review[]
+  cartItems   CartItem[]
 }
 
 model PharmacyMedicine {
