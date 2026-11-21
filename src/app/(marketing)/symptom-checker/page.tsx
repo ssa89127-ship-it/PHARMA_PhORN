@@ -19,9 +19,10 @@ import {
   ArrowRight,
   Bone,
   Wind,
-  Monitor,
   Ear,
   Eye,
+  Utensils,
+  Hand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +89,7 @@ const bodyParts: BodyPart[] = [
     nameUz: "Qorin",
     nameRu: "Живот",
     nameEn: "Stomach",
-    icon: Activity,
+    icon: Utensils,
     commonSymptoms: [
       "Qorin og'rig'i", "Ko'ngil aynishi",
       "Ich ketishi", "Qabziyat", "Shishish",
@@ -124,7 +125,7 @@ const bodyParts: BodyPart[] = [
     nameUz: "Teri",
     nameRu: "Кожа",
     nameEn: "Skin",
-    icon: Monitor,
+    icon: Hand,
     commonSymptoms: [
       "Teri toshmasi", "Qichishish",
       "Teri qizarishi", "Teri quruqligi",

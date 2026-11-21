@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { SafeMapContainer } from "./safe-map-container";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Navigation, Clock, Truck } from "lucide-react";
@@ -83,7 +84,7 @@ export default function DeliveryMap({
 
   return (
     <div className={`relative overflow-hidden rounded-xl border border-border/50 ${className}`} style={{ height, minHeight: 300 }}>
-      <MapContainer
+      <SafeMapContainer
         center={center}
         zoom={13}
         scrollWheelZoom={false}
@@ -153,7 +154,7 @@ export default function DeliveryMap({
         )}
 
         {livePosition && <FlyTo position={livePosition} />}
-      </MapContainer>
+      </SafeMapContainer>
 
       <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border border-border/50 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />

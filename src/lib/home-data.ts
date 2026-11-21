@@ -10,15 +10,6 @@ const HOMEPAGE_MEDICINES = 8;
 const HOMEPAGE_PHARMACIES = 4;
 const HOMEPAGE_CATEGORIES = 18;
 
-// Lazy load full data only when needed
-let _fullData: any = null;
-async function getFullData() {
-  if (!_fullData) {
-    _fullData = await import("./generated-data.json");
-  }
-  return _fullData;
-}
-
 // Static homepage data (no dynamic import needed)
 export const homepageDoctors: Doctor[] = [
   {
@@ -221,8 +212,8 @@ export const homepageCategories: Category[] = [
 // Homepage medicines - lightweight, only essential data
 export async function getHomepageMedicines(): Promise<Partial<Medicine>[]> {
   try {
-    const data = await getFullData();
-    const meds = (data.generatedMedicines as any[]).slice(0, HOMEPAGE_MEDICINES);
+    const data = await fetch(`/api/medicines?limit=${HOMEPAGE_MEDICINES}`).then((r) => r.json());
+    const meds = ((data.medicines ?? []) as any[]).slice(0, HOMEPAGE_MEDICINES);
     return meds.map((m: any) => ({
       id: m.id,
       name: m.name,
@@ -244,8 +235,8 @@ export async function getHomepageMedicines(): Promise<Partial<Medicine>[]> {
 // Homepage pharmacies - lightweight
 export async function getHomepagePharmacies(): Promise<Partial<Pharmacy>[]> {
   try {
-    const data = await getFullData();
-    const pharms = (data.generatedPharmacies as any[]).slice(0, HOMEPAGE_PHARMACIES);
+    const data = await fetch("/api/pharmacies").then((r) => r.json());
+    const pharms = ((data.pharmacies ?? []) as any[]).slice(0, HOMEPAGE_PHARMACIES);
     return pharms.map((p: any) => ({
       id: p.id,
       name: p.name,

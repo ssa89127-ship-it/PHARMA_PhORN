@@ -91,7 +91,7 @@ export default function ConsultationPage() {
         (d) =>
           d.name.toLowerCase().includes(q) ||
           d.specialty.toLowerCase().includes(q) ||
-          d.languages.some((l) => l.toLowerCase().includes(q))
+          (d.languages ?? []).some((l) => l.toLowerCase().includes(q))
       );
     }
 
@@ -108,7 +108,7 @@ export default function ConsultationPage() {
     }
 
     return result;
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, doctors]);
 
   return (
     <div className="overflow-hidden">

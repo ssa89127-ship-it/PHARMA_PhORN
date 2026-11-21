@@ -1,6 +1,7 @@
 "use client";
+import { tr, formLabel } from "@/lib/labels";
 
-import { useState, useMemo, use } from "react";
+import { useState, useMemo, useEffect, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -37,6 +38,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
 import type { MapPharmacy } from "@/components/shared/pharmacy-map";
 import { useDataLoader } from "@/lib/data-loader";
+import { useMedicineBySlug } from "@/hooks/use-medicines";
 
 const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
   ssr: false,
@@ -48,6 +50,7 @@ const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
 });
 import { useCart } from "@/store/cart";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { MedicineBox } from "@/components/medicines/medicine-box";
 
 const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "destructive" | "outline"> = {
   tablet: "primary",
@@ -78,17 +81,33 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
   const [quantity, setQuantity] = useState(1);
   const [selectedPharmacyId, setSelectedPharmacyId] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
-  const { data, isLoading } = useDataLoader();
-
-  const medicines = data?.medicines ?? [];
-  const medicinePrices = data?.medicinePrices ?? {};
+  const { data } = useDataLoader();
+  const { medicine: loadedMedicine, prices, isLoading: medLoading, notFound } = useMedicineBySlug(id);
+  const medicine = loadedMedicine ?? undefined;
   const pharmacies = data?.pharmacies ?? [];
+  const isLoading = medLoading || (!medicine && !notFound);
 
-  const medicine = useMemo(() => medicines.find((m) => m.slug === id), [id]);
-
-  const prices = useMemo(() => {
-    if (!medicine) return [];
-    return medicinePrices[medicine.id] ?? [];
+  // Alternatives: other medicines in the same category (the dataset has no alternatives list).
+  const [alternativeMedicines, setAlternativeMedicines] = useState<Medicine[]>([]);
+  const [medicinePrices, setMedicinePrices] = useState<Record<string, MedicinePrice[]>>({});
+  useEffect(() => {
+    if (!medicine) return;
+    let cancelled = false;
+    fetch(`/api/medicines?limit=7&category=${encodeURIComponent(medicine.category)}`)
+      .then((r) => r.json())
+      .then(async (d) => {
+        const alts = ((d.medicines ?? []) as Medicine[]).filter((m) => m.id !== medicine.id).slice(0, 6);
+        if (cancelled) return;
+        setAlternativeMedicines(alts);
+        if (alts.length) {
+          const pr = await fetch(`/api/medicines/prices?ids=${alts.map((m) => m.id).join(",")}`).then((r) => r.json());
+          if (!cancelled) setMedicinePrices(pr.medicinePrices ?? {});
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [medicine]);
 
   const availablePrices = useMemo(
@@ -118,7 +137,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
       });
     }
     return result;
-  }, [availablePrices]);
+  }, [availablePrices, pharmacies]);
 
   const cheapestPrice = availablePrices.length > 0 ? availablePrices[0] : null;
 
@@ -126,17 +145,6 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
     if (!selectedPharmacyId) return cheapestPrice;
     return availablePrices.find((p) => p.pharmacyId === selectedPharmacyId) ?? cheapestPrice;
   }, [selectedPharmacyId, availablePrices, cheapestPrice]);
-
-  const alternativeMedicines = useMemo(() => {
-    if (!medicine) return [];
-    return medicines.filter(
-      (m) =>
-        m.id !== medicine.id &&
-        medicine.alternatives.some(
-          (alt) => m.name.toLowerCase().includes(alt.toLowerCase()) || alt.toLowerCase().includes(m.name.toLowerCase())
-        )
-    );
-  }, [medicine]);
 
   const { addItem } = useCart();
 
@@ -287,16 +295,15 @@ function HeroSection({
     <motion.div variants={fadeUp} initial="hidden" animate="visible">
       <Card className="overflow-hidden">
         <div className="md:flex">
-          <div className="md:w-72 lg:w-80 shrink-0 relative h-56 md:h-auto gradient-primary flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+          <div className="md:w-72 lg:w-80 shrink-0 relative h-64 md:h-auto bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <Pill className="w-24 h-24 text-white/60" />
+              <MedicineBox name={medicine.name} dosage={medicine.dosage} form={medicine.form} manufacturer={medicine.manufacturer} category={medicine.category} prescription={medicine.prescriptionRequired} className="h-52 w-52 md:h-64 md:w-64" />
             </motion.div>
-            {medicine.discount && medicine.discount > 0 && (
+            {(medicine.discount ?? 0) > 0 && (
               <Badge
                 variant="warning"
                 className="absolute top-4 right-4 text-xs font-bold px-3 py-1"
@@ -319,7 +326,7 @@ function HeroSection({
                     variant={formVariantMap[medicine.form] ?? "outline"}
                     className="text-[10px] px-2 py-0.5"
                   >
-                    {t(`medicines.formLabels.${medicine.form}`)}
+                    {formLabel(t, medicine.form)}
                   </Badge>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold leading-tight">{medicine.name}</h1>
@@ -352,7 +359,7 @@ function HeroSection({
               </span>
               <span className="flex items-center gap-1.5">
                 <Package className="w-4 h-4 text-primary" />
-                {medicine.dosage} · {t(`medicines.formLabels.${medicine.form}`)}
+                {medicine.dosage} · {formLabel(t, medicine.form)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Scale className="w-4 h-4 text-primary" />
@@ -384,7 +391,7 @@ function MedicineInfo({ medicine }: { medicine: Medicine }) {
           <DetailRow label={t("medicines.description")} value={medicine.category} />
           <DetailRow label={t("medicines.dosage")} value={medicine.dosage} />
           <DetailRow label={t("medicines.description")} value={medicine.strength} />
-          <DetailRow label={t("medicines.form")} value={t(`medicines.formLabels.${medicine.form}`)} />
+          <DetailRow label={t("medicines.form")} value={formLabel(t, medicine.form)} />
           <DetailRow
             label={t("medicines.prescription")}
             value={medicine.prescriptionRequired ? t("medicines.prescription") : t("medicines.noPrescription")}
@@ -397,7 +404,7 @@ function MedicineInfo({ medicine }: { medicine: Medicine }) {
           />
         </div>
 
-        {medicine.sideEffects.length > 0 && (
+        {(medicine.sideEffects?.length ?? 0) > 0 && (
           <div className="mt-6 pt-6 border-t border-border/50">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <HeartPulse className="w-4 h-4 text-primary" />
@@ -628,9 +635,7 @@ function AlternativesSection({ medicines: altMedicines, medicinePrices }: { medi
               <motion.div key={alt.id} variants={fadeUp}>
                 <Link href={`/medicines/${alt.slug}`}>
                   <div className="group flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/30 hover:bg-accent/50 hover:border-primary/30 transition-all duration-200">
-                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shrink-0">
-                      <Pill className="w-6 h-6 text-white/70" />
-                    </div>
+                    <MedicineBox name={alt.name} dosage={alt.dosage} form={alt.form} manufacturer={alt.manufacturer} category={alt.category} prescription={alt.prescriptionRequired} className="w-14 h-14 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
                         {alt.name}
@@ -642,7 +647,7 @@ function AlternativesSection({ medicines: altMedicines, medicinePrices }: { medi
                           variant={formVariantMap[alt.form] ?? "outline"}
                           className="text-[9px] leading-none px-1.5 py-0.5"
                         >
-                          {t(`medicines.formLabels.${alt.form}`)}
+                          {formLabel(t, alt.form)}
                         </Badge>
                         {alt.prescriptionRequired && (
                           <>
@@ -656,7 +661,7 @@ function AlternativesSection({ medicines: altMedicines, medicinePrices }: { medi
                       <div className="font-bold text-sm">
                         {cheapestAlt ? formatPrice(cheapestAlt.price) : formatPrice(alt.unitPrice)}
                       </div>
-                      {alt.discount && alt.discount > 0 && (
+                      {(alt.discount ?? 0) > 0 && (
                         <Badge variant="success" className="text-[9px] px-1.5 py-0.5 mt-0.5">
                           -{alt.discount}%
                         </Badge>

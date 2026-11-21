@@ -12,7 +12,7 @@
  * - 3-language support (UZ/RU/EN) with cross-language synonyms
  */
 
-import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
+import type { Medicine, MedicinePrice, Pharmacy, WorkingHours } from "@/types";
 import { getFamilyMembers } from "./family";
 import { medicines as catalogMedicines, medicinePrices as catalogPrices, pharmacies as catalogPharmacies } from "./catalog.server";
 
@@ -1079,7 +1079,7 @@ export async function getChatResponse(
       if (offers.length > 0) {
         const lines = offers.map((o) => {
           const ph = pharmacies.find((p) => p.id === o.pharmacyId);
-          const deliveryFee = o.deliveryFee || ph?.deliveryFee;
+          const deliveryFee = o.deliveryFee || ph?.deliveryFee || 0;
           const feeText = deliveryFee > 0 ? formatPrice(lang, deliveryFee) : lang === "uz" ? "bepul" : lang === "ru" ? "бесплатно" : "free";
           const delivery =
             lang === "uz" ? `Yetkazish: ${feeText}, ${o.deliveryTime}`
@@ -1166,7 +1166,7 @@ export async function getChatResponse(
       };
       const nowDay = new Date().getDay();
       const hoursLines = days.map((d, i) => {
-        const day = ph.workingHours?.[d];
+        const day = ph.workingHours?.[d as keyof WorkingHours];
         if (!day || !day.isOpen) return `${dayNames[lang][i]}: ${lang === "uz" ? "Yopiq" : lang === "ru" ? "Закрыто" : "Closed"}`;
         return `${dayNames[lang][i]}: ${day.open} – ${day.close}`;
       });
@@ -1605,4 +1605,20 @@ export async function analyzeSymptoms(symptoms: string): Promise<{
 
 export function clearContext(chatId: string): void {
   conversationStore.delete(chatId);
+}
+
+/** Conversation history for the AI layer (most recent last). */
+export function getConversationHistory(chatId: string): { role: "user" | "assistant"; content: string }[] {
+  return getContext(chatId).messages.map((m) => ({ role: m.role, content: m.content }));
+}
+
+/** Replace the last stored assistant reply (used when the AI rewrites the answer). */
+export function replaceLastAssistantMessage(chatId: string, content: string): void {
+  const msgs = getContext(chatId).messages;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    if (msgs[i].role === "assistant") {
+      msgs[i].content = content;
+      return;
+    }
+  }
 }

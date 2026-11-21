@@ -22,18 +22,18 @@ const footerSections = [
   ]},
   { key: "support", links: [
     { key: "helpCenter", href: "#" },
-    { key: "contactUs", href: "#" },
+    { key: "contactUs", href: "mailto:info@vitahub.uz" },
     { key: "privacyPolicy", href: "#" },
     { key: "termsOfService", href: "#" },
     { key: "familyAccounts", href: "/family" },
     { key: "loyaltyProgram", href: "/loyalty" },
   ]},
   { key: "topCategories", isCategories: true, links: [
-    { key: "painRelief", href: "#" },
-    { key: "antibiotics", href: "#" },
-    { key: "diabetes", href: "#" },
-    { key: "heartHealth", href: "#" },
-    { key: "vitamins", href: "#" },
+    { key: "painRelief", href: "/medicines?category=ogriq-qoldiruvchi" },
+    { key: "antibiotics", href: "/medicines?category=antibiotiklar" },
+    { key: "diabetes", href: "/medicines?category=qandli-diabet" },
+    { key: "heartHealth", href: "/medicines?category=yurak-qon-tomir" },
+    { key: "vitamins", href: "/medicines?category=vitaminlar" },
   ]},
 ];
 

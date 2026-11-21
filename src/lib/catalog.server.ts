@@ -9,9 +9,35 @@
 import generatedData from "./generated-data.json";
 import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
 
-const rawPharmacies = generatedData.generatedPharmacies as any[];
+
+// ─── Data clean-up for the generated dataset ──────────────────────
+/** "Dorixona 777 Dorixona" -> "Dorixona 777", "Shifo Dorixona Dorixona" -> "Shifo Dorixona". */
+function cleanPharmacyName(name: string): string {
+  const n = String(name ?? "").replace(/\s+/g, " ").trim();
+  const count = (n.match(/dorixona/gi) ?? []).length;
+  return count > 1 ? n.replace(/\s+Dorixona$/i, "") : n;
+}
+/** "52-49 min" -> "49-52 min" */
+function fixRange(t: string): string {
+  const m = /^(\d+)\s*-\s*(\d+)(.*)$/.exec(String(t ?? ""));
+  if (!m) return t;
+  const [a, b] = [Number(m[1]), Number(m[2])].sort((x, y) => x - y);
+  return `${a}-${b}${m[3]}`;
+}
+
+const rawPharmacies = (generatedData.generatedPharmacies as any[]).map((p) => ({
+  ...p,
+  name: cleanPharmacyName(p.name),
+  deliveryTime: fixRange(p.deliveryTime),
+}));
 const rawMedicines = generatedData.generatedMedicines as any[];
-const rawPrices = generatedData.generatedMedicinePrices as Record<string, any[]>;
+const pharmacyNameById = new Map(rawPharmacies.map((p) => [p.id, p.name]));
+const rawPrices: Record<string, any[]> = Object.fromEntries(
+  Object.entries(generatedData.generatedMedicinePrices as Record<string, any[]>).map(([id, rows]) => [
+    id,
+    rows.map((r) => ({ ...r, pharmacyName: pharmacyNameById.get(r.pharmacyId) ?? cleanPharmacyName(r.pharmacyName) })),
+  ])
+);
 
 export const pharmacies: Pharmacy[] = rawPharmacies.map((p: any) => ({
   ...p,
@@ -34,10 +60,14 @@ export const pharmacies: Pharmacy[] = rawPharmacies.map((p: any) => ({
   updatedAt: "2024-11-01",
 }));
 
-export const medicines: Medicine[] = rawMedicines.map((m: any) => ({
-  ...m,
-  alternatives: [],
-}));
+// Many generated medicines share a slug; keep the first, suffix later ones with their id number.
+const seenSlugs = new Set<string>();
+export const medicines: Medicine[] = rawMedicines.map((m: any) => {
+  let slug: string = m.slug;
+  if (seenSlugs.has(slug)) slug = `${slug}-${String(m.id).replace("med-", "")}`;
+  seenSlugs.add(slug);
+  return { ...m, slug, alternatives: [] };
+});
 
 export const medicinePrices: Record<string, MedicinePrice[]> = rawPrices as Record<
   string,
@@ -87,7 +117,7 @@ export function toMedicineCard(m: Medicine): MedicineCard {
 }
 
 export function getMedicineBySlug(slug: string): Medicine | undefined {
-  return medicineBySlug.get(slug);
+  return medicineBySlug.get(slug) ?? medicineById.get(slug);
 }
 
 export function getMedicineById(id: string): Medicine | undefined {

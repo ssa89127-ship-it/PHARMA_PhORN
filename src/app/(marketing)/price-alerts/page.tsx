@@ -33,7 +33,8 @@ import {
   togglePriceAlert,
   type PriceAlert,
 } from "@/lib/price-alerts";
-import { useDataLoader } from "@/lib/data-loader";
+import { useMedicineSearch } from "@/hooks/use-medicines";
+import type { Medicine } from "@/types";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -41,29 +42,23 @@ const spring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5
 
 const PriceAlertsPage = memo(function PriceAlertsPage() {
   const { t } = useLanguage();
-  const { data } = useDataLoader();
-  const medicines = data?.medicines ?? [];
-  const medicinePrices = data?.medicinePrices ?? {};
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMedicine, setSelectedMedicine] = useState<typeof medicines[0] | null>(null);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
   const [targetPrice, setTargetPrice] = useState("");
 
   useEffect(() => {
     setAlerts(getPriceAlerts());
   }, []);
 
-  const filteredMedicines = medicines.filter(
-    (med) =>
-      med.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      searchQuery.length > 0
-  ).slice(0, 8);
+  const { medicines: searchResults } = useMedicineSearch(searchQuery);
+  const filteredMedicines = searchResults.slice(0, 8);
 
+  // Catalog prices equal the medicine's unit price; use it as the current price.
   const getCurrentPrice = (medicineId: string): number => {
-    const prices = medicinePrices[medicineId];
-    if (!prices || prices.length === 0) return 0;
-    return Math.min(...prices.map((p) => p.price));
+    const m = searchResults.find((x) => x.id === medicineId) ?? (selectedMedicine?.id === medicineId ? selectedMedicine : null);
+    return m?.unitPrice ?? 0;
   };
 
   const handleAdd = () => {

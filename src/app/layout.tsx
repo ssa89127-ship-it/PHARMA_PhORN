@@ -7,6 +7,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { CartSidebar } from "@/components/cart/cart-sidebar";
 import { AIChatbot } from "@/components/shared/ai-chatbot";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { CartProvider } from "@/store/cart";
 import { Toaster } from "react-hot-toast";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -101,10 +102,13 @@ export default function RootLayout({
               <Navbar />
               <div className="noise-bg" />
               <main className="flex-1 pt-16 md:pt-20">{children}</main>
-              <Footer />
+              <div className="pb-16 md:pb-0">
+                <Footer />
+              </div>
             </div>
             <CartSidebar />
             <AIChatbot />
+            <MobileBottomNav />
             <Toaster
               position="top-right"
               toastOptions={{

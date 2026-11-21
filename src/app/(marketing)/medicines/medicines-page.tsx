@@ -1,4 +1,5 @@
 "use client";
+import { tr, formLabel } from "@/lib/labels";
 
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -35,6 +36,9 @@ import {
 } from "@/components/ui/dialog";
 import { cn, formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { MedicineBox } from "@/components/medicines/medicine-box";
+import { categories as staticCategories } from "@/lib/data";
+import { homepageCategories } from "@/lib/home-data";
 import type { Medicine, Category, MedicinePrice } from "@/types";
 
 const categoryFilterMap: Record<string, string[]> = {
@@ -84,7 +88,7 @@ const formVariantMap: Record<string, "primary" | "secondary" | "warning" | "dest
 
 function getFormLabel(form: string, t: (p: string) => string): string {
   if (!form) return "";
-  return t(`medicines.formLabels.${form}`);
+  return formLabel(t, form);
 }
 
 const containerVariants = {
@@ -114,17 +118,54 @@ export default function MedicinesPage() {
   const [medicinePrices, setMedicinePrices] = useState<Record<string, MedicinePrice[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initial category / search from the URL (?category=<slug|name>, ?q= or ?search=)
   useEffect(() => {
-    fetch("/api/medicines")
-      .then((res) => res.json())
-      .then((data) => {
-        setMedicines(data.medicines || []);
-        setCategories(data.categories || []);
-        setMedicinePrices(data.medicinePrices || {});
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? params.get("search");
+    if (q) setSearchQuery(q);
+    const c = params.get("category");
+    if (c) {
+      const hit =
+        staticCategories.find((x) => x.slug === c || x.name === c) ??
+        homepageCategories.find((x) => x.slug === c || x.name === c);
+      if (hit && categoryFilterMap[hit.name]) setSelectedCategory(hit.name);
+    }
+    setCategories(staticCategories.filter((cat) => categoryFilterMap[cat.name]));
   }, []);
+
+  // Server-side search over the whole catalog (debounced).
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const mapped = selectedCategory ? categoryFilterMap[selectedCategory] : null;
+        const cats = mapped && mapped.length ? mapped : [""];
+        const results = await Promise.all(
+          cats.map((cat) => {
+            const qs = new URLSearchParams({ limit: "100" });
+            if (searchQuery.trim()) qs.set("query", searchQuery.trim());
+            if (cat) qs.set("category", cat);
+            return fetch(`/api/medicines?${qs}`).then((r) => r.json());
+          })
+        );
+        const list: Medicine[] = results.flatMap((d) => d.medicines || []);
+        if (cancelled) return;
+        setMedicines(list);
+        setIsLoading(false);
+        if (list.length) {
+          const ids = list.slice(0, 100).map((m) => m.id).join(",");
+          const pr = await fetch(`/api/medicines/prices?ids=${ids}`).then((r) => r.json());
+          if (!cancelled) setMedicinePrices(pr.medicinePrices || {});
+        }
+      } catch {
+        if (!cancelled) setIsLoading(false);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedCategory]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -144,11 +185,11 @@ export default function MedicinesPage() {
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.manufacturer.toLowerCase().includes(q) ||
-          m.category.toLowerCase().includes(q) ||
-          m.genericName.toLowerCase().includes(q) ||
-          m.dosage.toLowerCase().includes(q)
+          (m.name ?? "").toLowerCase().includes(q) ||
+          (m.manufacturer ?? "").toLowerCase().includes(q) ||
+          (m.category ?? "").toLowerCase().includes(q) ||
+          (m.genericName ?? "").toLowerCase().includes(q) ||
+          (m.dosage ?? "").toLowerCase().includes(q)
       );
     }
 
@@ -160,7 +201,7 @@ export default function MedicinesPage() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, medicines]);
 
   if (isLoading) {
     return (
@@ -196,7 +237,7 @@ export default function MedicinesPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"
+            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 lg:gap-6 mt-6 sm:mt-8"
           >
             {filteredMedicines.length === 0 ? (
               <motion.div
@@ -390,7 +431,7 @@ function CategoryFilterPills({
               )}
             >
               {Icon && <Icon className="w-4 h-4" />}
-              {t(`categories.${slugToTransKey[cat.slug] || cat.slug}`)}
+              {tr(t, `categories.${slugToTransKey[cat.slug] || cat.slug}`, cat.name)}
               <span className="text-xs opacity-70">({count})</span>
             </button>
           );
@@ -433,10 +474,9 @@ function MedicineCard({
     <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={index}>
       <Card className="group overflow-hidden hover:shadow-elevated transition-all duration-300 hover:-translate-y-0.5 h-full flex flex-col">
         <Link href={`/medicines/${medicine.slug}`} className="block">
-          <div className="relative h-40 gradient-primary flex items-center justify-center overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-            <Pill className="w-14 h-14 text-white/70 group-hover:scale-110 transition-transform duration-500" />
-            {medicine.discount && medicine.discount > 0 && (
+          <div className="relative h-28 sm:h-40 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden">
+            <MedicineBox name={medicine.name} dosage={medicine.dosage} form={medicine.form} manufacturer={medicine.manufacturer} category={medicine.category} className="relative h-24 w-24 sm:h-36 sm:w-36 drop-shadow-md group-hover:scale-110 transition-transform duration-500" />
+            {(medicine.discount ?? 0) > 0 && (
               <Badge
                 variant="warning"
                 className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5"
@@ -455,14 +495,14 @@ function MedicineCard({
           </div>
         </Link>
 
-        <div className="p-5 flex flex-col flex-1">
+        <div className="p-3 sm:p-5 flex flex-col flex-1">
           <Link href={`/medicines/${medicine.slug}`}>
-            <h3 className="font-semibold text-base leading-tight group-hover:text-primary transition-colors line-clamp-1">
+            <h3 className="font-semibold text-sm sm:text-base leading-tight group-hover:text-primary transition-colors line-clamp-2 sm:line-clamp-1">
               {medicine.name}
             </h3>
           </Link>
 
-          <p className="text-sm text-muted-foreground mt-0.5">{medicine.manufacturer}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">{medicine.manufacturer}</p>
 
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs text-muted-foreground">{medicine.dosage}</span>
@@ -476,10 +516,10 @@ function MedicineCard({
           </div>
 
           <div className="flex items-center gap-2 mt-3">
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-base sm:text-lg font-bold text-foreground">
               {formatPrice(medicine.unitPrice)}
             </span>
-            {medicine.discount && medicine.discount > 0 && medicine.basePrice > medicine.unitPrice && (
+            {(medicine.discount ?? 0) > 0 && medicine.basePrice > medicine.unitPrice && (
               <span className="text-sm text-muted-foreground line-through">
                 {formatPrice(medicine.basePrice)}
               </span>
@@ -487,7 +527,7 @@ function MedicineCard({
           </div>
 
           <div className="flex items-center gap-2 mt-1.5">
-            {medicine.discount && medicine.discount > 0 && (
+            {(medicine.discount ?? 0) > 0 && (
               <Badge variant="success" className="text-[10px] leading-none px-2 py-0.5">
                 {medicine.discount}% {t("pharmacies.filters.nearest") === "Eng yaqin" ? "chegirma" : "off"}
               </Badge>
@@ -499,7 +539,7 @@ function MedicineCard({
             )}
           </div>
 
-          <div className="mt-auto pt-4">
+          <div className="mt-auto pt-3 sm:pt-4">
             <Button
               variant="outline"
               size="sm"
@@ -509,10 +549,10 @@ function MedicineCard({
                 onComparePrices();
               }}
             >
-              <Store className="w-3.5 h-3.5 mr-1.5" />
-              {t("medicines.compare")}
+              <Store className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+              <span className="truncate">{t("medicines.compare")}</span>
               {cheapestPrice && (
-                <span className="ml-1 text-primary font-semibold">
+                <span className="ml-1 text-primary font-semibold hidden lg:inline">
                   {t("medicines.priceComparison.cheapest").toLowerCase() === "eng arzon" ? "dan" : t("medicines.priceComparison.cheapest").toLowerCase() === "самая дешёвая" ? "от" : "from"} {formatPrice(cheapestPrice.price)}
                 </span>
               )}

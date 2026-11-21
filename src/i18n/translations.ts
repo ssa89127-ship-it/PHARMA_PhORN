@@ -43,6 +43,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       paymentHistory: "To'lovlar tarixi",
     },
     payment: {
+      failed: "To'lov amalga oshmadi",
       secure: "Xavfsiz to'lov",
       fee: "komissiya",
       noFee: "Komissiyasiz",
@@ -146,6 +147,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       respiratory: "Nafas olish",
     },
     pharmacies: {
+      nearestDescription: "Joylashuvingizga eng yaqin dorixonalar",
+      viewOnMap: "Xaritada ko'rish",
       title: "Dorixonalar",
       subtitle: "Tavsiya etilgan dorixonalar",
       desc: "Yoningizdagi ishonchli dorixonalar",
@@ -241,6 +244,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       allDoctors: "Barcha shifokorlar",
     },
     delivery: {
+      coverageDescription: "Toshkent bo'ylab tez yetkazib berish",
+      destination: "Manzil",
       title: "Yetkazib berish",
       activeOrder: "Faol buyurtma",
       orderHistory: "Buyurtmalar tarixi",
@@ -474,6 +479,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       privacyPolicy: "Maxfiylik siyosati",
       termsOfService: "Foydalanish shartlari",
       refundPolicy: "Qaytarish siyosati",
+      aiConsultation: "AI maslahatchi",
+      drugInteractions: "Dorilar o'zaro ta'siri",
+      familyAccounts: "Oilaviy hisoblar",
+      loyaltyProgram: "Sodiqlik dasturi",
       madeWith: "Sog'liqni saqlash uchun sevgi bilan yaratilgan",
       rights: "Barcha huquqlar himoyalangan.",
     },
@@ -830,6 +839,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       paymentHistory: "История платежей",
     },
     payment: {
+      failed: "Оплата не прошла",
       secure: "Безопасная оплата",
       fee: "комиссия",
       noFee: "Без комиссии",
@@ -877,6 +887,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       },
     },
     hero: {
+      badge: "Нам доверяют 100 000+ пациентов",
       title1: "Ваше здоровье —",
       title2: "наш приоритет",
       title3: "Доставка лекарств",
@@ -932,6 +943,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       respiratory: "Дыхание",
     },
     pharmacies: {
+      nearestDescription: "Аптеки рядом с вами",
+      viewOnMap: "Показать на карте",
       title: "Аптеки",
       subtitle: "Рекомендуемые аптеки",
       desc: "Проверенные аптеки рядом с вами",
@@ -1027,6 +1040,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       allDoctors: "Все врачи",
     },
     delivery: {
+      coverageDescription: "Быстрая доставка по всему Ташкенту",
+      destination: "Адрес доставки",
       title: "Доставка",
       activeOrder: "Активный заказ",
       orderHistory: "История заказов",
@@ -1260,6 +1275,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       privacyPolicy: "Конфиденциальность",
       termsOfService: "Условия использования",
       refundPolicy: "Политика возврата",
+      aiConsultation: "AI-консультант",
+      drugInteractions: "Взаимодействие лекарств",
+      familyAccounts: "Семейные аккаунты",
+      loyaltyProgram: "Программа лояльности",
       madeWith: "Сделано с любовью для здравоохранения",
       rights: "Все права защищены.",
     },
@@ -1617,6 +1636,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       paymentHistory: "Payment History",
     },
     payment: {
+      failed: "Payment failed",
       secure: "Secure Payment",
       fee: "fee",
       noFee: "No Fee",
@@ -1664,6 +1684,7 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       },
     },
     hero: {
+      badge: "Trusted by 100,000+ patients",
       title1: "Your Health,",
       title2: "Our Priority",
       title3: "Medicines Delivered",
@@ -1719,6 +1740,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       respiratory: "Respiratory Care",
     },
     pharmacies: {
+      nearestDescription: "Pharmacies closest to your location",
+      viewOnMap: "View on map",
       title: "Pharmacies",
       subtitle: "Featured Pharmacies",
       desc: "Trusted pharmacies near you",
@@ -1814,6 +1837,8 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       allDoctors: "All Doctors",
     },
     delivery: {
+      coverageDescription: "Fast delivery across Tashkent",
+      destination: "Destination",
       title: "Delivery",
       activeOrder: "Active Order",
       orderHistory: "Order History",
@@ -2046,6 +2071,10 @@ export const translations: Record<Language, Record<string, TranslationValue>> = 
       privacyPolicy: "Privacy Policy",
       termsOfService: "Terms of Service",
       refundPolicy: "Refund Policy",
+      aiConsultation: "AI Assistant",
+      drugInteractions: "Drug Interactions",
+      familyAccounts: "Family Accounts",
+      loyaltyProgram: "Loyalty Program",
       madeWith: "Made with love for better healthcare",
       rights: "All rights reserved.",
     },

@@ -1,4 +1,5 @@
 "use client";
+import { tr, formLabel } from "@/lib/labels";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -323,7 +324,7 @@ export default function ScannerPage() {
                               <p className="text-xs text-muted-foreground font-medium mb-1">
                                 {t("medicines.form")}
                               </p>
-                              <p className="text-sm font-semibold capitalize">{t(`medicines.formLabels.${result.form}`)}</p>
+                              <p className="text-sm font-semibold capitalize">{formLabel(t, result.form)}</p>
                             </div>
                           </div>
 

@@ -37,7 +37,7 @@ async function loadData(): Promise<CachedData> {
 
     try {
       const [medsRes, pharmsRes] = await Promise.all([
-        fetch("/api/medicines?limit=10000"), // full slim catalog
+        fetch("/api/medicines?limit=100"), // demo subset for dashboards (API max is 100)
         fetch("/api/pharmacies"),
       ]);
 

@@ -61,6 +61,7 @@ import {
   getHomepageMedicines,
   getHomepagePharmacies,
 } from "@/lib/home-data";
+import { MedicineBox } from "@/components/medicines/medicine-box";
 
 const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
 const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
@@ -109,14 +110,14 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
+      setCount(Number.isInteger(target) ? Math.floor(eased * target) : Math.round(eased * target * 10) / 10);
       if (progress < 1) requestAnimationFrame(animate);
     };
 
     requestAnimationFrame(animate);
   }, [isInView, target]);
 
-  return <span ref={ref}>{formatNumber(count)}{suffix}</span>;
+  return <span ref={ref}>{Number.isInteger(target) ? formatNumber(count) : count.toFixed(1)}{suffix}</span>;
 }
 
 export default function HomePage() {
@@ -142,11 +143,6 @@ export default function HomePage() {
 }
 
 const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => string }) {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 600], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 400], [1, 0]);
-  const scale = useTransform(scrollY, [0, 400], [1, 0.92]);
-  const springY = useSpring(y, { stiffness: 50, damping: 20 });
   const [heroMeds, setHeroMeds] = useState<any[]>([]);
   useEffect(() => { getHomepageMedicines().then(setHeroMeds); }, []);
 
@@ -187,7 +183,7 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
         ))}
       </div>
 
-      <motion.div style={{ y: springY, opacity, scale }} className="container-custom relative z-10">
+      <div className="container-custom relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -351,7 +347,7 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-primary">{formatPrice(med.unitPrice)}</p>
-                        {med.discount && (
+                        {(med.discount ?? 0) > 0 && (
                           <p className="text-xs text-green-600 dark:text-green-400">-{med.discount}%</p>
                         )}
                       </div>
@@ -402,7 +398,7 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 });
@@ -712,7 +708,7 @@ const PopularMedicines = memo(function PopularMedicines({ t }: { t: (path: strin
               <Link href={`/medicines/${med.slug}`}>
                 <Card className="group relative overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-500 h-full cursor-pointer border border-white/20">
                   <div className="absolute top-3 right-3 z-10">
-                    {med.discount && (
+                    {(med.discount ?? 0) > 0 && (
                       <Badge variant="destructive" className="text-xs shadow-lg">
                         -{med.discount}%
                       </Badge>
@@ -720,7 +716,7 @@ const PopularMedicines = memo(function PopularMedicines({ t }: { t: (path: strin
                   </div>
                   <div className="p-5">
                     <div className="w-full h-32 rounded-xl bg-gradient-to-br from-primary/5 to-blue-50 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-500 overflow-hidden">
-                      <img src={med.image} alt="" className="w-full h-full object-cover" />
+                      <MedicineBox name={med.name ?? ""} dosage={med.dosage} form={med.form} manufacturer={med.manufacturer} category={med.category} prescription={med.prescriptionRequired} className="h-full w-auto" />
                     </div>
                     <Badge variant="secondary" className="mb-2 text-[10px]">{med.category}</Badge>
                     <h3 className="font-semibold text-sm mb-1 group-hover:text-primary transition-colors duration-300 line-clamp-1">

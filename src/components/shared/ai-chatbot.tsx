@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useChatId } from "@/hooks/use-chat-id";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, X, Send, Bot, User, Sparkles, Loader2, Pill,
@@ -31,7 +32,7 @@ function getUserProfile(): UserProfile | undefined {
 
 export function AIChatbot() {
   const { t, tArray, language } = useLanguage();
-  const chatId = useId();
+  const chatId = useChatId("widget");
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -141,7 +142,7 @@ export function AIChatbot() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200",
+          "fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 w-14 h-14 rounded-2xl gradient-primary shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200",
           isOpen && "scale-0 opacity-0"
         )}
         aria-label={t("chatbot.title")}
@@ -164,7 +165,7 @@ export function AIChatbot() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 50, scale: 0.95 }}
               transition={spring}
-              className="fixed bottom-6 right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)] h-[620px] max-h-[calc(100vh-6rem)] glass border border-border/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+              className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 w-[400px] max-w-[calc(100vw-2rem)] h-[620px] max-h-[calc(100dvh-7rem)] md:max-h-[calc(100vh-6rem)] glass border border-border/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
             >
               {/* Header */}
               <div className="gradient-primary p-4 flex items-center justify-between shrink-0">

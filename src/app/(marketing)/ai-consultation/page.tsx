@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, memo, useId } from "react";
+import { useState, useRef, useEffect, memo } from "react";
+import { useChatId } from "@/hooks/use-chat-id";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, Send, User, Sparkles, Loader2, Pill, Stethoscope, Brain,
@@ -67,7 +68,7 @@ const features = [
 
 const AIConsultationPage = memo(function AIConsultationPage() {
   const { t, language } = useLanguage();
-  const chatId = useId();
+  const chatId = useChatId("consultation");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
