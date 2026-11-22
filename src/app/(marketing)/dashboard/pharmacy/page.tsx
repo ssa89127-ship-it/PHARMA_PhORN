@@ -1,4 +1,5 @@
 "use client";
+import { RequireLogin } from "@/components/auth/require-login";
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -1149,7 +1150,7 @@ function SalesAnalyticsTab() {
   );
 }
 
-export default function PharmacyDashboardPage() {
+function PharmacyDashboardPageInner() {
   const { t } = useLanguage();
   const { data, isLoading } = useDataLoader();
   const pharmacies = data?.pharmacies ?? [];
@@ -1315,5 +1316,14 @@ export default function PharmacyDashboardPage() {
 
       <div className="h-16 lg:hidden" />
     </div>
+  );
+}
+
+
+export default function PharmacyDashboardPage() {
+  return (
+    <RequireLogin>
+      <PharmacyDashboardPageInner />
+    </RequireLogin>
   );
 }

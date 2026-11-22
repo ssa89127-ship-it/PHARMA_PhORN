@@ -1,4 +1,5 @@
 "use client";
+import { TrText } from "@/components/shared/tr-text";
 import { tr, formLabel } from "@/lib/labels";
 
 import { useState, useMemo, useEffect } from "react";
@@ -128,7 +129,7 @@ export default function MedicinesPage() {
       const hit =
         staticCategories.find((x) => x.slug === c || x.name === c) ??
         homepageCategories.find((x) => x.slug === c || x.name === c);
-      if (hit && categoryFilterMap[hit.name]) setSelectedCategory(hit.name);
+      if (hit) setSelectedCategory(hit.name);
     }
     setCategories(staticCategories.filter((cat) => categoryFilterMap[cat.name]));
   }, []);
@@ -138,7 +139,7 @@ export default function MedicinesPage() {
     let cancelled = false;
     const timer = setTimeout(async () => {
       try {
-        const mapped = selectedCategory ? categoryFilterMap[selectedCategory] : null;
+        const mapped = selectedCategory ? categoryFilterMap[selectedCategory] ?? [selectedCategory] : null;
         const cats = mapped && mapped.length ? mapped : [""];
         const results = await Promise.all(
           cats.map((cat) => {
@@ -194,10 +195,8 @@ export default function MedicinesPage() {
     }
 
     if (selectedCategory) {
-      const mapped = categoryFilterMap[selectedCategory];
-      if (mapped) {
-        result = result.filter((m) => mapped.includes(m.category));
-      }
+      const mapped = categoryFilterMap[selectedCategory] ?? [selectedCategory];
+      result = result.filter((m) => mapped.includes(m.category));
     }
 
     return result;
@@ -208,7 +207,7 @@ export default function MedicinesPage() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Loading medicines...</p>
+          <p className="text-sm text-muted-foreground"><TrText k="ui.loadingMedicines" /></p>
         </div>
       </div>
     );

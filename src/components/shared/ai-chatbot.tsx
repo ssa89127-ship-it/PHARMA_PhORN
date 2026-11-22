@@ -179,7 +179,7 @@ export function AIChatbot() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button onClick={handleClear} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="New chat">
+                  <button onClick={handleClear} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title={t("ui.newChat")}>
                     <RefreshCw className="w-4 h-4 text-white/70" />
                   </button>
                   <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">

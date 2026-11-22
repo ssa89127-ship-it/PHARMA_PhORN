@@ -1,4 +1,7 @@
 "use client";
+import { useAuth } from "@/components/auth/auth-provider";
+import { RequireLogin } from "@/components/auth/require-login";
+import { TrText } from "@/components/shared/tr-text";
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -134,7 +137,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <Badge variant={variants[status] || "outline"}>
-      {status}
+      <TrText k={`ui.st_${status.replace(/-/g, "_")}`} />
     </Badge>
   );
 }
@@ -150,7 +153,7 @@ function AppointmentTypeBadge({ type }: { type: string }) {
       {type === "video" && <Video className="h-3 w-3" />}
       {type === "chat" && <MessageCircle className="h-3 w-3" />}
       {type === "in-person" && <User className="h-3 w-3" />}
-      {type}
+      <TrText k={`ui.ty_${type.replace(/-/g, "_")}`} />
     </span>
   );
 }
@@ -216,6 +219,7 @@ function TrackingTimeline({ tracking }: { tracking: Order["tracking"] }) {
 
 function OverviewTab() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const { data } = useDataLoader();
   const orders = (data?.orders ?? []) as Order[];
   const appointments = (data?.appointments ?? []) as Appointment[];
@@ -229,7 +233,7 @@ function OverviewTab() {
   return (
     <div className="space-y-6">
       <motion.div variants={itemVariants}>
-        <h2 className="text-2xl font-bold">{t("dashboard.patient.welcome")} back, John! 👋</h2>
+        <h2 className="text-2xl font-bold">{user?.name ? t("auth2.welcomeUser", { name: user.name }) : `${t("dashboard.patient.welcome")}! 👋`}</h2>
         <p className="text-muted-foreground">{t("dashboard.patient.overview")}</p>
       </motion.div>
 
@@ -413,10 +417,10 @@ function OverviewTab() {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                  {loyaltyPoints.pointsUntilNextTier} pts to next tier
+                  {t("ui.ptsToNext", { n: loyaltyPoints.pointsUntilNextTier })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Earned: {loyaltyPoints.earned} | Redeemed: {loyaltyPoints.redeemed}
+                  {t("ui.earnedRedeemed", { e: loyaltyPoints.earned, r: loyaltyPoints.redeemed })}
                 </p>
               </div>
             </div>
@@ -1323,7 +1327,7 @@ function TabContent({ tab }: { tab: Tab }) {
   );
 }
 
-export default function PatientDashboardPage() {
+function PatientDashboardPageInner() {
   const { t } = useLanguage();
   const { isLoading } = useDataLoader();
   const [activeTab, setActiveTab] = useState<Tab>("overview");
@@ -1478,7 +1482,7 @@ export default function PatientDashboardPage() {
             className="flex flex-col items-center justify-center gap-1 py-2 px-3 text-muted-foreground min-w-0"
           >
             <MoreHorizontal className="h-5 w-5" />
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-medium">{t("ui.more")}</span>
           </button>
         </div>
       </nav>
@@ -1486,5 +1490,14 @@ export default function PatientDashboardPage() {
       {/* Bottom spacer for mobile tab bar */}
       <div className="h-16 lg:hidden" />
     </div>
+  );
+}
+
+
+export default function PatientDashboardPage() {
+  return (
+    <RequireLogin>
+      <PatientDashboardPageInner />
+    </RequireLogin>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { SafeMapContainer } from "./safe-map-container";
 import L from "leaflet";
@@ -20,9 +21,6 @@ function createIcon(color: string, label?: string) {
   });
 }
 
-const pharmacyIcon = createIcon("#059669", "Dorixona");
-const courierIcon = createIcon("#f97316", "Kuryer");
-const destinationIcon = createIcon("#ef4444", "Manzil");
 
 function FlyTo({ position }: { position: [number, number] }) {
   const map = useMap();
@@ -53,6 +51,10 @@ export default function DeliveryMap({
   height = "100%",
   className = "",
 }: DeliveryMapProps) {
+  const { t, language } = useLanguage();
+  const pharmacyIcon = useMemo(() => createIcon("#059669", t("ui.pharmacy")), [language]);
+  const courierIcon = useMemo(() => createIcon("#f97316", t("ui.courier")), [language]);
+  const destinationIcon = useMemo(() => createIcon("#ef4444", t("ui.destination")), [language]);
   const [livePosition, setLivePosition] = useState<[number, number] | null>(courierCoords || null);
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export default function DeliveryMap({
             <Popup>
               <div className="text-xs min-w-[140px]">
                 <p className="font-bold text-[13px] mb-0.5">{pharmacyName}</p>
-                <p className="text-muted-foreground">Dorixona joylashuvi</p>
+                <p className="text-muted-foreground">{t("ui.pharmacyLocation")}</p>
                 <a
                   href={`https://www.google.com/maps/dir/?api=1&destination=${pharmacyCoords[0]},${pharmacyCoords[1]}`}
                   target="_blank"
@@ -117,7 +119,7 @@ export default function DeliveryMap({
             <Popup>
               <div className="text-xs min-w-[140px]">
                 <p className="font-bold text-[13px] mb-0.5">{destinationAddress}</p>
-                <p className="text-muted-foreground">Yetkazib berish manzili</p>
+                <p className="text-muted-foreground">{t("ui.deliveryAddress")}</p>
               </div>
             </Popup>
           </Marker>
@@ -128,11 +130,11 @@ export default function DeliveryMap({
             <Popup>
               <div className="text-xs min-w-[140px]">
                 <p className="font-bold text-[13px] mb-0.5 flex items-center gap-1">
-                  <Truck className="w-3 h-3" /> Kuryer
+                  <Truck className="w-3 h-3" /> {t("ui.courier")}
                 </p>
-                <p className="text-muted-foreground">Hozirgi joylashuv</p>
+                <p className="text-muted-foreground">{t("ui.currentLocation")}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Taxminiy yetib kelish: 15-20 daqiqa
+                  {t("ui.eta")}
                 </p>
               </div>
             </Popup>
@@ -159,7 +161,7 @@ export default function DeliveryMap({
       <div className="absolute bottom-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-md border border-border/50 flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
         <span className="text-[11px] font-medium text-muted-foreground">
-          {livePosition ? "Kuryer harakatlanmoqda..." : "Kuryer tayyorlanmoqda..."}
+          {livePosition ? t("ui.courierMoving") : t("ui.courierPreparing")}
         </span>
       </div>
     </div>

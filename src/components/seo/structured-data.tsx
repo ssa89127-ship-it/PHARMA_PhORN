@@ -3,7 +3,7 @@ export function StructuredData() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "VitaHub",
-    url: "https://pharma-ph-orn-pe1d.vercel.app",
+    url: "https://vitahub.vercel.app",
     applicationCategory: "HealthApplication",
     operatingSystem: "Web",
     description:
@@ -33,8 +33,8 @@ export function StructuredData() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "VitaHub",
-    url: "https://pharma-ph-orn-pe1d.vercel.app",
-    logo: "https://pharma-ph-orn-pe1d.vercel.app/logo.png",
+    url: "https://vitahub.vercel.app",
+    logo: "https://vitahub.vercel.app/logo.png",
     sameAs: [],
     contactPoint: {
       "@type": "ContactPoint",

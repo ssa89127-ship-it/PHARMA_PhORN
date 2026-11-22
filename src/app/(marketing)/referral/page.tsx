@@ -55,7 +55,7 @@ const ReferralPage = memo(function ReferralPage() {
     setTimeout(() => setShowSuccess(false), 3000);
   };
 
-  const shareUrl = `https://pharma-ph-orn-pe1d.vercel.app/ref?code=${referralCode}`;
+  const shareUrl = `https://vitahub.vercel.app/ref?code=${referralCode}`;
 
   return (
     <div className="min-h-[calc(100vh-4rem)]">

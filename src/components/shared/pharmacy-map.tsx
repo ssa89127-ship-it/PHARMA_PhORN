@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 import { useEffect, useState } from "react";
 import { TileLayer, Marker, Popup, useMap, CircleMarker } from "react-leaflet";
@@ -61,6 +62,7 @@ function FitBounds({ pharmacies }: { pharmacies: MapPharmacy[] }) {
 }
 
 function LocateButton({ map }: { map: L.Map | null }) {
+  const { t } = useLanguage();
   const locate = () => {
     if (!navigator.geolocation || !map) return;
     navigator.geolocation.getCurrentPosition(
@@ -68,7 +70,7 @@ function LocateButton({ map }: { map: L.Map | null }) {
         map.setView([pos.coords.latitude, pos.coords.longitude], 14);
         L.popup()
           .setLatLng([pos.coords.latitude, pos.coords.longitude])
-          .setContent('<div style="font-size:12px;font-weight:600">📍 Sizning joylashuvingiz</div>')
+          .setContent(`<div style="font-size:12px;font-weight:600">📍 ${t("ui.yourLocation")}</div>`)
           .openOn(map);
       },
       () => {}
@@ -78,8 +80,8 @@ function LocateButton({ map }: { map: L.Map | null }) {
     <button
       onClick={locate}
       className="absolute top-3 right-3 z-[1000] w-9 h-9 rounded-lg bg-white shadow-md border border-border flex items-center justify-center hover:scale-105 transition-transform"
-      title="My location"
-      aria-label="My location"
+      title={t("ui.myLocation")}
+      aria-label={t("ui.myLocation")}
     >
       <Navigation className="w-4 h-4 text-primary" />
     </button>

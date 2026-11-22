@@ -1,4 +1,5 @@
 "use client";
+import { RequireLogin } from "@/components/auth/require-login";
 
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -1063,7 +1064,7 @@ function TabContent({ tab }: { tab: AdminTab }) {
   );
 }
 
-export default function AdminDashboardPage() {
+function AdminDashboardPageInner() {
   const { t } = useLanguage();
   const { isLoading } = useDataLoader();
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
@@ -1218,5 +1219,14 @@ export default function AdminDashboardPage() {
 
       <div className="h-16 lg:hidden" />
     </div>
+  );
+}
+
+
+export default function AdminDashboardPage() {
+  return (
+    <RequireLogin>
+      <AdminDashboardPageInner />
+    </RequireLogin>
   );
 }

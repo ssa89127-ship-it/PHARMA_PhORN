@@ -1,4 +1,6 @@
 "use client";
+import { TrText } from "@/components/shared/tr-text";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 import { useState, useEffect, useMemo } from "react";
 import { MapPin, Navigation, Phone, Clock, Truck, ChevronRight } from "lucide-react";
@@ -14,7 +16,7 @@ const PharmacyMap = dynamic(() => import("@/components/shared/pharmacy-map"), {
     <div className="w-full h-full bg-muted/30 rounded-xl flex items-center justify-center min-h-[200px]">
       <div className="text-center">
         <MapPin className="w-6 h-6 text-muted-foreground/30 mx-auto mb-2 animate-pulse" />
-        <p className="text-xs text-muted-foreground">Xarita yuklanmoqda...</p>
+        <p className="text-xs text-muted-foreground"><TrText k="ui.loadingMap" /></p>
       </div>
     </div>
   ),
@@ -81,13 +83,14 @@ interface NearestPharmacyProps {
 }
 
 export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = true }: NearestPharmacyProps) {
+  const { t } = useLanguage();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError("Geolocation qo'llab-quvvatlanmaydi");
+      setLocationError(t("ui.geoUnsupported"));
       return;
     }
 
@@ -105,16 +108,16 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
         setLoading(false);
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            setLocationError("Joylashuv ruxsati berilmadi");
+            setLocationError(t("ui.geoDenied"));
             break;
           case error.POSITION_UNAVAILABLE:
-            setLocationError("Joylashuv ma'lumotlari mavjud emas");
+            setLocationError(t("ui.geoUnavailable"));
             break;
           case error.TIMEOUT:
-            setLocationError("Joylashuv so'rovi vaqti tugadi");
+            setLocationError(t("ui.geoTimeout"));
             break;
           default:
-            setLocationError("Noma'lum xatolik");
+            setLocationError(t("ui.geoUnknown"));
         }
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
@@ -148,9 +151,9 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
               <MapPin className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold text-sm">Eng yaqin dorixonani toping</h3>
+              <h3 className="font-semibold text-sm">{t("ui.findNearest")}</h3>
               <p className="text-xs text-muted-foreground mt-1">
-                Joylashuvingizni aniqlang va sizga eng yaqin dorixonani ko'ring
+                {t("ui.findNearestHint")}
               </p>
             </div>
             {locationError && (
@@ -158,7 +161,7 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
             )}
             <Button onClick={requestLocation} disabled={loading} className="gap-2">
               <Navigation className="w-4 h-4" />
-              {loading ? "Aniqlanmoqda..." : "Joylashuvni aniqlash"}
+              {loading ? t("ui.detecting") : t("ui.detectLocation")}
             </Button>
           </div>
         </Card>
@@ -202,12 +205,12 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold truncate">{pharmacy.name}</p>
                       {pharmacy.isOpen ? (
-                        <Badge variant="success" className="text-[10px] px-1.5 py-0 shrink-0">Ochiq</Badge>
+                        <Badge variant="success" className="text-[10px] px-1.5 py-0 shrink-0">{t("ui.open")}</Badge>
                       ) : (
-                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">Yopiq</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 shrink-0">{t("ui.closed")}</Badge>
                       )}
                       {pharmacy.is24hours && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">24 soat</Badge>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">{t("ui.hours24")}</Badge>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{pharmacy.address}</p>
@@ -237,14 +240,14 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
                     >
                       <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1">
                         <Navigation className="w-3 h-3" />
-                        Yo'nalish
+                        {t("ui.directions")}
                       </Button>
                     </a>
                     {pharmacy.phone && (
                       <a href={`tel:${pharmacy.phone}`} onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1 px-2">
                           <Phone className="w-3 h-3" />
-                          Qo'ng'iroq
+                          {t("ui.call")}
                         </Button>
                       </a>
                     )}
@@ -256,7 +259,7 @@ export default function NearestPharmacy({ pharmacies, maxShow = 5, showMap = tru
 
           {pharmaciesWithDistance.length === 0 && (
             <Card className="p-6 text-center text-sm text-muted-foreground">
-              Yaqin atrofda dorixona topilmadi
+              {t("ui.noNearby")}
             </Card>
           )}
         </>

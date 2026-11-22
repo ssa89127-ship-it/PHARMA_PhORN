@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, Trash2, Plus, Minus, ArrowRight } from "lucide-react";
@@ -8,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 
 export function CartSidebar() {
+  const { t } = useLanguage();
   const { items, isOpen, toggleCart, removeItem, updateQuantity, subtotal, clearCart } = useCart();
 
   return (
@@ -31,13 +33,13 @@ export function CartSidebar() {
             <div className="flex items-center justify-between p-4 border-b border-border/50">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-primary" />
-                <span className="font-semibold">Shopping Cart</span>
+                <span className="font-semibold">{t("ui.cartTitle")}</span>
                 <span className="text-sm text-muted-foreground">({items.length})</span>
               </div>
               <div className="flex items-center gap-2">
                 {items.length > 0 && (
                   <button onClick={clearCart} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
-                    Clear all
+                    {t("ui.clearAll")}
                   </button>
                 )}
                 <button onClick={toggleCart} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
@@ -52,8 +54,8 @@ export function CartSidebar() {
                   <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center mb-4">
                     <ShoppingCart className="w-10 h-10 text-muted-foreground" />
                   </div>
-                  <h3 className="font-semibold mb-1">Your cart is empty</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Add medicines to get started</p>
+                  <h3 className="font-semibold mb-1">{t("ui.cartEmpty")}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{t("ui.cartEmptyHint")}</p>
                   <Button onClick={toggleCart} variant="primary">
                     Browse Medicines
                   </Button>
@@ -110,21 +112,21 @@ export function CartSidebar() {
               <div className="border-t border-border/50 p-4 space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-muted-foreground">{t("ui.subtotal")}</span>
                     <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Delivery</span>
-                    <span className="text-muted-foreground">Calculated at checkout</span>
+                    <span className="text-muted-foreground">{t("ui.delivery")}</span>
+                    <span className="text-muted-foreground">{t("ui.calcAtCheckout")}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t border-border/50">
-                    <span>Total</span>
+                    <span>{t("ui.total")}</span>
                     <span className="text-primary">{formatPrice(subtotal)}</span>
                   </div>
                 </div>
                 <Link href="/cart">
                   <Button variant="primary" size="lg" className="w-full" onClick={toggleCart}>
-                    Checkout
+                    {t("ui.checkout")}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>

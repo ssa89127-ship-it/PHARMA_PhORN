@@ -6,11 +6,8 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 
 const footerSections = [
   { key: "company", links: [
-    { key: "about", href: "#" },
-    { key: "careers", href: "#" },
-    { key: "press", href: "#" },
-    { key: "blog", href: "#" },
-    { key: "partners", href: "#" },
+    { key: "about", href: "/about" },
+    { key: "partners", href: "/contact" },
   ]},
   { key: "services", links: [
     { key: "medicineDelivery", href: "/delivery" },
@@ -21,10 +18,10 @@ const footerSections = [
     { key: "drugInteractions", href: "/interactions" },
   ]},
   { key: "support", links: [
-    { key: "helpCenter", href: "#" },
-    { key: "contactUs", href: "mailto:info@vitahub.uz" },
-    { key: "privacyPolicy", href: "#" },
-    { key: "termsOfService", href: "#" },
+    { key: "helpCenter", href: "/contact" },
+    { key: "contactUs", href: "/contact" },
+    { key: "privacyPolicy", href: "/privacy" },
+    { key: "termsOfService", href: "/terms" },
     { key: "familyAccounts", href: "/family" },
     { key: "loyaltyProgram", href: "/loyalty" },
   ]},

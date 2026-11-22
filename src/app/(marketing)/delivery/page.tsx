@@ -1,4 +1,6 @@
 "use client";
+import { RequireLogin } from "@/components/auth/require-login";
+import { TrText } from "@/components/shared/tr-text";
 
 import { useState, lazy, Suspense } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -40,7 +42,7 @@ const DeliveryMap = dynamic(() => import("@/components/shared/delivery-map"), {
     <div className="w-full h-full bg-muted/30 rounded-xl flex items-center justify-center min-h-[300px]">
       <div className="text-center">
         <Map className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2 animate-pulse" />
-        <p className="text-xs text-muted-foreground">Xarita yuklanmoqda...</p>
+        <p className="text-xs text-muted-foreground"><TrText k="ui.loadingMap" /></p>
       </div>
     </div>
   ),
@@ -63,7 +65,7 @@ const itemVariants = {
   },
 };
 
-export default function DeliveryPage() {
+function DeliveryPageInner() {
   const { data } = useDataLoader();
   const medicines = data?.medicines ?? [];
   const pharmacies = data?.pharmacies ?? [];
@@ -726,5 +728,14 @@ function FavoriteMedicines({ medicines: meds }: { medicines: Medicine[] }) {
         ))}
       </div>
     </motion.div>
+  );
+}
+
+
+export default function DeliveryPage() {
+  return (
+    <RequireLogin>
+      <DeliveryPageInner />
+    </RequireLogin>
   );
 }

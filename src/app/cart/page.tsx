@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -31,7 +31,7 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast";
 import { cn, formatPrice } from "@/lib/utils";
-import { savedAddresses } from "@/lib/data";
+import { useAuth } from "@/components/auth/auth-provider";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useCart } from "@/store/cart";
 import { PaymentSelector } from "@/components/payment/payment-selector";
@@ -65,9 +65,19 @@ export default function CartPage() {
   const toast = useToast();
   const { t } = useLanguage();
 
-  const [selectedAddress, setSelectedAddress] = useState<string>(
-    savedAddresses.find((a) => a.isDefault)?.id ?? ""
-  );
+  const { user, requireLogin } = useAuth();
+  const [selectedAddress, setSelectedAddress] = useState<string>("");
+  useEffect(() => {
+    try {
+      setSelectedAddress(localStorage.getItem("vitahub-address") ?? "");
+    } catch {}
+  }, []);
+  const saveAddress = (v: string) => {
+    setSelectedAddress(v);
+    try {
+      localStorage.setItem("vitahub-address", v);
+    } catch {}
+  };
   const [selectedPayment, setSelectedPayment] = useState<PaymentProvider | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -76,13 +86,22 @@ export default function CartPage() {
   const discount = 0;
   const total = subtotal + deliveryFee - discount;
 
+  const handlePlaceOrderRef = useRef<() => void>(() => {});
   const handlePlaceOrder = () => {
-    if (!selectedAddress) {
-      toast.error("Please select a delivery address");
+    if (!user) {
+      requireLogin(() => handlePlaceOrderRef.current());
+      return;
+    }
+    if (selectedAddress.trim().length < 8) {
+      toast.error(t("ui.selectAddress"));
       return;
     }
     if (!selectedPayment) {
-      toast.error("Please select a payment method");
+      toast.error(t("ui.selectPayment"));
+      return;
+    }
+    if (items.some((i) => i.prescriptionRequired)) {
+      toast.error(t("ui.rxBlocked"));
       return;
     }
     setIsPlacingOrder(true);
@@ -93,6 +112,7 @@ export default function CartPage() {
       window.location.href = `/payment/result?status=success&orderId=ORD-${Date.now().toString(36).toUpperCase()}&amount=${total}&provider=${selectedPayment}`;
     }, 1500);
   };
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
   if (items.length === 0) {
     return (
@@ -127,7 +147,7 @@ export default function CartPage() {
                 <Link href="/pharmacies">
                   <Button variant="outline" size="lg">
                     <Building2 className="w-4 h-4 mr-2" />
-                    Find Pharmacies
+                    {t("ui.findPharmacies")}
                   </Button>
                 </Link>
               </div>
@@ -254,7 +274,7 @@ export default function CartPage() {
                                       {formatPrice(item.unitPrice * item.quantity)}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                      {formatPrice(item.unitPrice)} / unit
+                                      {formatPrice(item.unitPrice)} {t("ui.perUnit")}
                                     </p>
                                   </div>
                                 </div>
@@ -268,10 +288,9 @@ export default function CartPage() {
                                           {t("medicines.prescription")}
                                         </span>
                                       </div>
-                                      <Button variant="outline" size="sm" className="text-xs">
-                                        <Upload className="w-3 h-3 mr-1" />
-                                        {t("dashboard.patient.upload")}
-                                      </Button>
+                                      <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 text-right">
+                                        {t("ui.rxPickupOnly")}
+                                      </span>
                                     </div>
                                   </div>
                                 )}
@@ -295,46 +314,18 @@ export default function CartPage() {
                   {t("delivery.deliveryAddress")}
                 </h2>
 
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {savedAddresses.map((address) => (
-                    <button
-                      key={address.id}
-                      onClick={() => setSelectedAddress(address.id)}
-                      className={cn(
-                        "relative rounded-xl border p-4 text-left transition-all duration-200",
-                        selectedAddress === address.id
-                          ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
-                          : "border-border bg-card/50 hover:border-primary/30 hover:bg-muted/30"
-                      )}
-                    >
-                      {selectedAddress === address.id && (
-                        <div className="absolute top-3 right-3">
-                          <CheckCircle2 className="w-4 h-4 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="secondary" className="text-[10px] leading-none">
-                          {address.label}
-                        </Badge>
-                        {address.isDefault && (
-                          <Badge variant="primary" className="text-[10px] leading-none">
-                            Default
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm font-medium">{address.fullName}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {address.street}, {address.city}, {address.state} {address.zipCode}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">{address.phone}</p>
-                    </button>
-                  ))}
-
-                  <button className="rounded-xl border border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/30 hover:text-primary transition-all duration-200 min-h-[120px]">
-                    <Plus className="w-5 h-5" />
-                    <span className="text-xs font-medium">Add new address</span>
-                  </button>
-                </div>
+                <textarea
+                  value={selectedAddress}
+                  onChange={(e) => saveAddress(e.target.value)}
+                  placeholder={t("auth2.addressPlaceholder")}
+                  rows={3}
+                  className="w-full rounded-xl border border-border bg-card/50 p-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+                {user && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {user.name ? `${user.name} · ` : ""}+{user.phone}
+                  </p>
+                )}
               </motion.div>
 
               <motion.div
@@ -375,14 +366,14 @@ export default function CartPage() {
                         <span className="text-muted-foreground">{t("cart.delivery")}</span>
                         <span className="font-medium">
                           {deliveryFee === 0 ? (
-                            <span className="text-emerald-600 dark:text-emerald-400">Free</span>
+                            <span className="text-emerald-600 dark:text-emerald-400">{t("ui.free")}</span>
                           ) : (
                             formatPrice(deliveryFee)
                           )}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Discount</span>
+                        <span className="text-muted-foreground">{t("ui.discount")}</span>
                         <span className="font-medium text-emerald-600 dark:text-emerald-400">
                           -{formatPrice(discount)}
                         </span>
@@ -429,7 +420,7 @@ export default function CartPage() {
 
                 <div className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                   <Shield className="w-3.5 h-3.5" />
-                  Secure checkout &middot; Your data is protected
+                  {t("ui.secureCheckout")}
                 </div>
               </motion.div>
             </div>

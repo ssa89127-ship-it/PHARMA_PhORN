@@ -57,12 +57,13 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   homepageDoctors as doctors,
   homepageTestimonials as testimonials,
-  homepageCategories as categories,
   getHomepageMedicines,
   getHomepagePharmacies,
 } from "@/lib/home-data";
 import { MedicineBox } from "@/components/medicines/medicine-box";
 import { HeroShowcase } from "@/components/home/hero-showcase";
+import { categories as realCategories } from "@/lib/data";
+const categories = realCategories.slice(0, 18);
 
 const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
 const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
@@ -345,7 +346,7 @@ const LiveMedicineCounter = memo(function LiveMedicineCounter({ t }: { t: (path:
               <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
             </span>
             <span className="text-sm font-medium">
-              <AnimatedCounter target={30000} suffix="+" /> {t("liveStats.medicines")}
+              <AnimatedCounter target={10000} suffix="+" /> {t("liveStats.medicines")}
             </span>
           </motion.div>
           <div className="w-px h-4 bg-border" />
@@ -394,7 +395,7 @@ const LiveMedicineCounter = memo(function LiveMedicineCounter({ t }: { t: (path:
 const StatsSection = memo(function StatsSection({ t }: { t: (path: string) => string }) {
   const stats = [
     { icon: Building2, value: 152, suffix: "+", label: t("stats.pharmacies"), color: "from-blue-500 to-indigo-600" },
-    { icon: Package, value: 30000, suffix: "+", label: t("stats.medicines"), color: "from-emerald-500 to-green-600" },
+    { icon: Package, value: 10000, suffix: "+", label: t("stats.medicines"), color: "from-emerald-500 to-green-600" },
     { icon: Users, value: 100000, suffix: "+", label: t("stats.patients"), color: "from-purple-500 to-pink-600" },
     { icon: Award, value: 4.9, suffix: "", label: t("stats.rating"), color: "from-orange-500 to-red-600" },
   ];

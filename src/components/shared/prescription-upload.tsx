@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageProvider";
 
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +18,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export function PrescriptionUpload({ onUploadComplete, medicineName }: PrescriptionUploadProps) {
+  const { t } = useLanguage();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
@@ -26,10 +28,10 @@ export function PrescriptionUpload({ onUploadComplete, medicineName }: Prescript
 
   const validateFile = useCallback((f: File): string | null => {
     if (!ACCEPTED_TYPES.includes(f.type)) {
-      return "Please upload an image file (JPEG, PNG, WebP, or GIF).";
+      return t("ui.badFileType");
     }
     if (f.size > MAX_FILE_SIZE) {
-      return "File size must be less than 5MB.";
+      return t("ui.fileTooBig");
     }
     return null;
   }, []);
@@ -58,7 +60,7 @@ export function PrescriptionUpload({ onUploadComplete, medicineName }: Prescript
       setTimeout(() => {
         const mockUrl = URL.createObjectURL(f);
         setStatus("success");
-        toast.success("Prescription uploaded successfully!");
+        toast.success(t("ui.prescriptionUploaded"));
         onUploadComplete?.(mockUrl);
       }, 1500);
     },
@@ -133,10 +135,10 @@ export function PrescriptionUpload({ onUploadComplete, medicineName }: Prescript
 
             <div className="text-center">
               <p className="text-sm font-medium text-foreground">
-                Drop prescription here{" "}
-                <span className="text-muted-foreground">or click to upload</span>
+                {t("ui.dropPrescription")}{" "}
+                <span className="text-muted-foreground">{t("ui.orClickUpload")}</span>
               </p>
-              <p className="text-xs text-muted-foreground/60 mt-1">JPEG, PNG, WebP or GIF (max 5MB)</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">{t("ui.fileTypes")}</p>
             </div>
 
             {medicineName && (
@@ -176,7 +178,7 @@ export function PrescriptionUpload({ onUploadComplete, medicineName }: Prescript
               {preview && (
                 <img
                   src={preview}
-                  alt="Prescription preview"
+                  alt={t("ui.prescriptionPreview")}
                   className="w-full h-full object-contain p-4"
                 />
               )}
@@ -191,8 +193,8 @@ export function PrescriptionUpload({ onUploadComplete, medicineName }: Prescript
                   >
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <div className="text-center">
-                      <p className="text-sm font-medium text-foreground">Uploading...</p>
-                      <p className="text-xs text-muted-foreground">Please wait</p>
+                      <p className="text-sm font-medium text-foreground">{t("ui.uploading")}</p>
+                      <p className="text-xs text-muted-foreground">{t("ui.pleaseWait")}</p>
                     </div>
                   </motion.div>
                 )}

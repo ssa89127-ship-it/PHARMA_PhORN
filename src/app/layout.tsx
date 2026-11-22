@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/footer";
 import { CartSidebar } from "@/components/cart/cart-sidebar";
 import { AIChatbot } from "@/components/shared/ai-chatbot";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { CartProvider } from "@/store/cart";
 import { Toaster } from "react-hot-toast";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -19,7 +20,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://pharma-ph-orn-pe1d.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://vitahub.vercel.app"),
   title: {
     default: "VitaHub - Dorixona Platformasi | O'zbekiston",
     template: "%s | VitaHub",
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "uz_UZ",
-    url: "https://pharma-ph-orn-pe1d.vercel.app",
+    url: "https://vitahub.vercel.app",
     siteName: "VitaHub",
     title: "VitaHub - O'zbekiston Yetakchi Dorixona Platformasi",
     description: "10,000+ dori vositalari, 152+ dorixona, 30 daqiqada yetkazib berish",
@@ -93,11 +94,13 @@ export default function RootLayout({
         <StructuredData />
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          storageKey="vitahub-theme"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <LanguageProvider>
+          <AuthProvider>
           <CartProvider>
             <div className="relative min-h-screen flex flex-col">
               <Navbar />
@@ -123,6 +126,7 @@ export default function RootLayout({
               }}
             />
           </CartProvider>
+          </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

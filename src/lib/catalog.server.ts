@@ -8,6 +8,7 @@
  */
 import generatedData from "./generated-data.json";
 import type { Medicine, MedicinePrice, Pharmacy } from "@/types";
+import { fixForm, isPrescription, basePrice, pharmacyPrice, roundFee } from "./catalog-realism";
 
 
 // ─── Data clean-up for the generated dataset ──────────────────────
@@ -29,15 +30,50 @@ const rawPharmacies = (generatedData.generatedPharmacies as any[]).map((p) => ({
   ...p,
   name: cleanPharmacyName(p.name),
   deliveryTime: fixRange(p.deliveryTime),
+  deliveryFee: p.freeDelivery ? 0 : roundFee(p.deliveryFee),
 }));
-const rawMedicines = generatedData.generatedMedicines as any[];
+const baseName = (name: string) => String(name).replace(/\s+\d.*$/, "").trim();
+const pharmacyById = new Map(rawPharmacies.map((p) => [p.id, p]));
 const pharmacyNameById = new Map(rawPharmacies.map((p) => [p.id, p.name]));
+
+// Medicines with consistent form, Rx status and a base price.
+const rawMedicines = (generatedData.generatedMedicines as any[]).map((m) => {
+  const form = fixForm(m.name, m.dosage ?? "", m.form ?? "");
+  const rx = isPrescription(m.category, form, m.name);
+  return { ...m, form, prescriptionRequired: rx, requiresPrescription: rx, _base: basePrice(baseName(m.name), m.category, form, m.dosage ?? "") };
+});
+const rawMedicineById = new Map(rawMedicines.map((m) => [m.id, m]));
+
+// One row per pharmacy, prices that differ between pharmacies, rounded fees.
 const rawPrices: Record<string, any[]> = Object.fromEntries(
-  Object.entries(generatedData.generatedMedicinePrices as Record<string, any[]>).map(([id, rows]) => [
-    id,
-    rows.map((r) => ({ ...r, pharmacyName: pharmacyNameById.get(r.pharmacyId) ?? cleanPharmacyName(r.pharmacyName) })),
-  ])
+  Object.entries(generatedData.generatedMedicinePrices as Record<string, any[]>).map(([id, rows]) => {
+    const med = rawMedicineById.get(id);
+    const seen = new Set<string>();
+    const out = [];
+    for (const r of rows) {
+      if (seen.has(r.pharmacyId)) continue;
+      seen.add(r.pharmacyId);
+      const ph = pharmacyById.get(r.pharmacyId);
+      const price = med ? pharmacyPrice(med._base, id, r.pharmacyId) : r.price;
+      const hasDiscount = (r.discount ?? 0) >= 15;
+      out.push({
+        ...r,
+        pharmacyName: pharmacyNameById.get(r.pharmacyId) ?? cleanPharmacyName(r.pharmacyName),
+        price,
+        originalPrice: hasDiscount ? Math.round((price * 1.12) / 100) * 100 : undefined,
+        discount: hasDiscount ? 11 : 0,
+        deliveryFee: ph ? (ph.freeDelivery ? 0 : ph.deliveryFee) : roundFee(r.deliveryFee),
+        deliveryTime: ph?.deliveryTime ?? r.deliveryTime,
+      });
+    }
+    return [id, out];
+  })
 );
+// Lowest available price per medicine (shown on cards).
+const minPrice = (id: string) => {
+  const avail = (rawPrices[id] ?? []).filter((r) => r.isAvailable).map((r) => r.price);
+  return avail.length ? Math.min(...avail) : rawMedicineById.get(id)?._base;
+};
 
 export const pharmacies: Pharmacy[] = rawPharmacies.map((p: any) => ({
   ...p,
@@ -63,10 +99,13 @@ export const pharmacies: Pharmacy[] = rawPharmacies.map((p: any) => ({
 // Many generated medicines share a slug; keep the first, suffix later ones with their id number.
 const seenSlugs = new Set<string>();
 export const medicines: Medicine[] = rawMedicines.map((m: any) => {
-  let slug: string = m.slug;
+  let slug: string = String(m.slug).replace(/%/g, "-foiz").replace(/[^a-z0-9-]+/gi, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").toLowerCase();
   if (seenSlugs.has(slug)) slug = `${slug}-${String(m.id).replace("med-", "")}`;
   seenSlugs.add(slug);
-  return { ...m, slug, alternatives: [] };
+  const { _base, ...rest } = m;
+  const unitPrice = minPrice(m.id) ?? _base;
+  const hasDiscount = (m.discount ?? 0) >= 15;
+  return { ...rest, slug, unitPrice, discount: hasDiscount ? 11 : 0, oldPrice: hasDiscount ? Math.round((unitPrice * 1.12) / 100) * 100 : undefined, discountedPrice: unitPrice, alternatives: [] };
 });
 
 export const medicinePrices: Record<string, MedicinePrice[]> = rawPrices as Record<

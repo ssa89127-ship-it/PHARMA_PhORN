@@ -1,4 +1,5 @@
 "use client";
+import { TrText } from "@/components/shared/tr-text";
 import { tr, formLabel } from "@/lib/labels";
 
 import { useState, useMemo, useEffect, use } from "react";
@@ -93,10 +94,11 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
   useEffect(() => {
     if (!medicine) return;
     let cancelled = false;
-    fetch(`/api/medicines?limit=7&category=${encodeURIComponent(medicine.category)}`)
+    fetch(`/api/medicines?limit=12&query=${encodeURIComponent(medicine.name.replace(/\s+\d.*$/, ""))}`)
       .then((r) => r.json())
       .then(async (d) => {
-        const alts = ((d.medicines ?? []) as Medicine[]).filter((m) => m.id !== medicine.id).slice(0, 6);
+        const base = medicine.name.replace(/\s+\d.*$/, "").toLowerCase();
+        const alts = ((d.medicines ?? []) as Medicine[]).filter((m) => m.id !== medicine.id && m.name.toLowerCase().startsWith(base)).slice(0, 6);
         if (cancelled) return;
         setAlternativeMedicines(alts);
         if (alts.length) {
@@ -170,7 +172,7 @@ export default function MedicineDetailPage({ params }: { params: Promise<{ id: s
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Loading medicine details...</p>
+          <p className="text-sm text-muted-foreground"><TrText k="ui.loadingMedicine" /></p>
         </div>
       </div>
     );
@@ -399,7 +401,7 @@ function MedicineInfo({ medicine }: { medicine: Medicine }) {
           />
           <DetailRow
             label={t("medicines.inStock")}
-            value={medicine.isAvailable ? `${t("medicines.inStock")} (${medicine.stockQuantity})` : t("medicines.outOfStock")}
+            value={medicine.isAvailable ? (medicine.stockQuantity ? `${t("medicines.inStock")} (${medicine.stockQuantity})` : t("medicines.inStock")) : t("medicines.outOfStock")}
             valueClass={medicine.isAvailable ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}
           />
         </div>
@@ -531,7 +533,7 @@ function PriceComparisonSection({
                           {price.distance !== undefined && (
                             <>
                               <span>·</span>
-                              <span>{price.distance.toFixed(1)} mi</span>
+                              <span>{(price.distance * 1.609).toFixed(1)} km</span>
                             </>
                           )}
                         </div>
@@ -569,7 +571,7 @@ function PriceComparisonSection({
                     <span className="font-semibold text-foreground">{t("medicines.priceComparison.total")}: {formatPrice(totalPrice)}</span>
                   </div>
 
-                  {i > 0 && cheapestTotal !== null && totalPrice - cheapestTotal > 0 && (
+                  {i > 0 && cheapestTotal !== null && totalPrice - cheapestTotal > 0 && price.price > (sortedByTotal[0]?.price ?? price.price) && (
                     <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
                       <Info className="w-3 h-3" />
                       {t("medicines.priceComparison.save")} {formatPrice(totalPrice - cheapestTotal)}
