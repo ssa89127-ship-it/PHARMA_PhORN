@@ -17,6 +17,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>("uz");
 
   useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
     const saved = localStorage.getItem("vitahub-lang") as Language;
     if (saved && ["uz", "ru", "en"].includes(saved)) setLanguage(saved);
   }, []);

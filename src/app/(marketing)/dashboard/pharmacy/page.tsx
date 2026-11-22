@@ -1161,10 +1161,19 @@ export default function PharmacyDashboardPage() {
     setSidebarOpen(false);
   }, [activeTab]);
 
-  if (isLoading || !pharmacy) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!pharmacy) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
+        <p className="text-muted-foreground">{t("common.error")}</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>{t("common.retry")}</Button>
       </div>
     );
   }

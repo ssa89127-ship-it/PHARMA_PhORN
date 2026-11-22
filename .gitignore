@@ -7,3 +7,4 @@ next-env.d.ts
 scripts/__pycache__/
 .vercel
 .env*
+!.env.example

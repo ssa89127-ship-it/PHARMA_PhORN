@@ -62,6 +62,7 @@ import {
   getHomepagePharmacies,
 } from "@/lib/home-data";
 import { MedicineBox } from "@/components/medicines/medicine-box";
+import { HeroShowcase } from "@/components/home/hero-showcase";
 
 const spring = { type: "spring" as const, stiffness: 100, damping: 20, mass: 0.8 };
 const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 25, mass: 0.5 };
@@ -305,97 +306,12 @@ const HeroSection = memo(function HeroSection({ t }: { t: (path: string) => stri
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 80, scale: 0.9 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            transition={{ ...spring, delay: 0.3, duration: 1.2 }}
-            className="hidden lg:block relative"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ ...spring, delay: 0.2, duration: 1 }}
+            className="relative mt-2 lg:mt-0"
           >
-            <div className="relative">
-              <div className="absolute -top-10 -right-10 w-80 h-80 bg-gradient-to-br from-primary/15 to-blue-500/15 rounded-full blur-3xl" />
-              <motion.div
-                whileHover={{ y: -4, transition: gentleSpring }}
-                className="relative bg-white/80 dark:bg-card/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-black/10 border border-white/20"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-primary/30">
-                    <Pill className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{t("quickOrder.title")}</h3>
-                    <p className="text-xs text-muted-foreground">{t("quickOrder.subtitle")}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {heroMeds.slice(0, 4).map((med, i) => (
-                    <motion.div
-                      key={med.id}
-                      initial={{ opacity: 0, x: 30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...spring, delay: 0.5 + i * 0.1 }}
-                      whileHover={{ x: 4, transition: gentleSpring }}
-                      className="flex items-center gap-3 p-3 rounded-xl cursor-pointer border border-transparent hover:border-primary/10 hover:bg-primary/5 transition-colors duration-300"
-                    >
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/10 to-blue-50 flex items-center justify-center">
-                        <div className="w-5 h-5 rounded-lg bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
-                          {med.name.charAt(0)}
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{med.name}</p>
-                        <p className="text-xs text-muted-foreground">{med.manufacturer}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-primary">{formatPrice(med.unitPrice)}</p>
-                        {(med.discount ?? 0) > 0 && (
-                          <p className="text-xs text-green-600 dark:text-green-400">-{med.discount}%</p>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <Link href="/medicines">
-                  <Button variant="ghost" size="sm" className="w-full mt-4 text-muted-foreground hover:text-primary">
-                    {t("medicines.viewAll")}
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </Link>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                className="absolute -bottom-6 -left-6 bg-white dark:bg-card rounded-2xl p-4 shadow-xl shadow-black/10 border border-white/20"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                    <Truck className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold">+2,500</p>
-                    <p className="text-[10px] text-muted-foreground">{t("quickOrder.deliveredToday")}</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 60, scale: 0.8 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                transition={{ ...bouncySpring, delay: 1.8 }}
-                className="absolute -top-4 -left-8 bg-white dark:bg-card rounded-2xl p-3 shadow-xl shadow-black/10 border border-white/20"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">{t("quickOrder.orderConfirmed")}</p>
-                    <p className="text-[10px] text-muted-foreground">{t("quickOrder.timeAgo")}</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+            <HeroShowcase meds={heroMeds} />
           </motion.div>
         </div>
       </div>

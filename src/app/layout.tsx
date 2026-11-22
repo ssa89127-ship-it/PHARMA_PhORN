@@ -19,6 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://pharma-ph-orn-pe1d.vercel.app"),
   title: {
     default: "VitaHub - Dorixona Platformasi | O'zbekiston",
     template: "%s | VitaHub",
@@ -87,7 +88,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="uz" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
         <StructuredData />
         <ThemeProvider

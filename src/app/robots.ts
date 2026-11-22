@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/dashboard/", "/cart/"],
     },
-    sitemap: "https://vitahub.uz/sitemap.xml",
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://pharma-ph-orn-pe1d.vercel.app"}/sitemap.xml`,
   };
 }

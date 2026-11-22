@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://vitahub.uz";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pharma-ph-orn-pe1d.vercel.app";
 
   const staticRoutes = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1.0 },

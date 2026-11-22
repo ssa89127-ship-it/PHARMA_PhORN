@@ -24,7 +24,12 @@ const PaymentResultPage = memo(function PaymentResultPage() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const success = searchParams.get("status") === "success";
-  const orderId = searchParams.get("orderId") || `ORD-${Date.now().toString(36).toUpperCase()}`;
+  // Generated after mount so server and client HTML match (no hydration error).
+  const [fallbackId, setFallbackId] = useState("ORD-…");
+  useEffect(() => {
+    setFallbackId(`ORD-${Math.random().toString(36).slice(2, 8).toUpperCase()}`);
+  }, []);
+  const orderId = searchParams.get("orderId") || fallbackId;
   const amount = searchParams.get("amount") || "0";
   const provider = searchParams.get("provider") || "";
   const [showConfetti, setShowConfetti] = useState(false);
